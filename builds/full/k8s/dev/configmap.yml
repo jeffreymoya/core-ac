@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulse8-yourname-backend-config
+data:
+  JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5010 -Xms256m -Xmx4G"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://pulse8-central-postgres:5432/postgres

@@ -1,0 +1,79 @@
+# Development properties
+
+logging:
+  level:
+    com:
+      zaxxer:
+        hikari: DEBUG
+        hikari.HikariConfig: DEBUG
+    org:
+      apache:
+        kafka:
+          clients:
+            NetworkClient: ERROR
+
+yournamebackend:
+  tenant-id: public
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-project.xml
+    enabled: true
+    default-schema: public
+    drop-first: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      properties:
+        acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    consumer:
+      group-id: main
+      auto-offset-reset: earliest
+      default-topic: general
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        specific:
+          avro:
+            reader: true
+    properties:
+      schema:
+        registry:
+          url: ${SCHEMA_REGISTRY_URL}
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: p8c-test
+            authorization-grant-type: authorization_code
+            scope: openid
+        provider:
+          keycloak:
+            issuer-uri: https://keycloak.pulse8.synpulse8.com/realms/master
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.pulse8.synpulse8.com/realms/master
+
+iam:
+  service:
+    baseUrl: http://pulse8-core-iam:3000
+    endpoints:
+      createTenant: /api/v1/iam/provision/tenant/{correlationId}
+      createRestAdminClientForTenant: /api/v1/iam/provision/rest-admin-client/{correlationId}
+      createTenantRole: /api/v1/iam/provision/tenant-role/{correlationId}
+      assignCompositeRole: /api/v1/iam/provision/composite-role/{correlationId}
+      assignTenantRole: /api/v1/iam/provision/tenant-role-to-tenant/{correlationId}

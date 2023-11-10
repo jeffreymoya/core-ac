@@ -1,0 +1,27 @@
+# Changes here will be overwritten by Copier
+_commit: be2600b
+_src_path: .
+add_aquasec: true
+add_core_iam_feign: false
+add_database: true
+add_docker: false
+add_env_prod: false
+add_env_qa: false
+add_example: true
+add_k8s: false
+add_kafka: false
+add_keycloak: false
+add_liquibase: false
+add_sonar: true
+add_spock: false
+artifact_id_raw: yourname-backend
+database_dev_schema: public
+database_dev_system: postgres
+database_dev_url: jdbc:postgresql://localhost:5432/postgres
+database_dev_username: postgres
+github_actions_workflow_name: PULSE8-CORE YOUR NAME BACKEND CI
+group_id: com.synpulse8.pulse8.core
+project_description: Template build minimal with database
+project_id: pulse8-yourname-backend
+project_name: Pulse8 YourName Backend
+sonar_project_key_suffix: pulse8-core-backend-template

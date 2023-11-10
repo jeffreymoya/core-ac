@@ -1,0 +1,60 @@
+package {{group_id}}.{{artifact_id}}.service;
+
+import {{group_id}}.{{artifact_id}}.config.auth.P8CAuthenticationContextImpl;
+{% if add_kafka and kafka_add_example %}import {{group_id}}.{{artifact_id}}.kafka.producer.KafkaProducerService;
+{% endif %}{% if add_database %}import {{group_id}}.{{artifact_id}}.repository.ArticleJpaRepository;
+import {{group_id}}.{{artifact_id}}.repository.ArticleRepository;
+{% endif %}import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.mockito.Mockito.verify;{% if not add_database %}
+import static org.assertj.core.api.Assertions.assertThat;{% endif %}
+
+@ExtendWith(MockitoExtension.class)
+class ArticleServiceTest {
+
+    @InjectMocks
+    private ArticleService articleService;
+
+    @Mock
+    private P8CAuthenticationContextImpl authContext;
+
+{% if add_database %}    @Mock
+    private ArticleRepository articleRepository;
+
+    @Mock
+    private ArticleJpaRepository jpaRepo;
+
+{% endif %}{% if add_kafka and kafka_add_example %}    @Mock
+    private KafkaProducerService kafkaProducerService;
+
+{% endif %}
+
+    @BeforeEach
+    void setUp() {
+        // block for code running before each test
+    }
+
+    @Test
+    void getAllArticles() {
+{% if add_database %}        articleService.getAllArticles();
+        verify(articleRepository).findAll();{% else %}        assertThat(articleService.getAllArticles()).isNotEmpty();{% endif %}
+    }
+
+    @Test
+    void fetchById() {
+{% if add_database %}        articleService.fetchById(1);
+        verify(jpaRepo).findById(1);{% else %}        assertThat(articleService.fetchById(1)).isNotNull();{% endif %}
+    }
+
+{% if add_kafka and kafka_add_example and not add_kafka_schema_registry %}    @Test
+    void processArticles() {
+        articleService.processArticles();
+        verify(kafkaProducerService).sendMessage(ArticleService.PROCESS_ARTICLES_MESSAGE);
+    }
+{% endif %}
+}

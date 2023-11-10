@@ -1,0 +1,84 @@
+# Development properties
+
+{% if add_database or add_kafka %}logging:
+  level:{% endif %}{% if add_database %}
+    com:
+      zaxxer:
+        hikari: DEBUG
+        hikari.HikariConfig: DEBUG{% endif %}{% if add_kafka %}
+    org:
+      apache:
+        kafka:
+          clients:
+            NetworkClient: ERROR{% endif %}{% if add_database %}
+
+{{artifact_id}}:
+  tenant-id: {{database_dev_schema}}{% endif %}
+
+spring:
+{% if add_database %}  datasource:
+    url: {{database_dev_url}}
+    username: {{database_dev_username}}
+    password: {{database_dev_password}}
+    {% if database_dev_system == 'postgres' %}driver-class-name: org.postgresql.Driver{% endif %}
+    type: com.zaxxer.hikari.HikariDataSource
+  jpa:
+    properties:
+      hibernate:
+        {% if database_dev_system == 'postgres' %}dialect: org.hibernate.dialect.PostgreSQLDialect{% endif %}
+    show-sql: true
+{% if add_liquibase %}  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-project.xml
+    enabled: true
+    default-schema: {{database_dev_schema}}
+    drop-first: false{% endif %}{% endif %}
+{% if add_kafka %}  kafka:
+    bootstrap-servers: {{kafka_dev_bootstrap_servers}}
+    producer:
+      properties:
+        acks: all{% if add_kafka_schema_registry %}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer{% endif %}
+    consumer:
+      group-id: {{kafka_dev_group_id}}
+      auto-offset-reset: earliest
+      default-topic: {{kafka_dev_default_topic}}{% if add_kafka_schema_registry %}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        specific:
+          avro:
+            reader: true
+    properties:
+      schema:
+        registry:
+          url: {% if add_docker %}${SCHEMA_REGISTRY_URL}{% endif -%}{% if not add_docker %}{{kafka_schema_registry_url}}{% endif -%}
+    {% endif %}{% endif %}
+{% if add_keycloak %}  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: {{keycloak_dev_client_id}}
+            authorization-grant-type: authorization_code
+            scope: openid{% if keycloak_dev_client_secret != '' %}
+            client-secret: {{keycloak_dev_client_secret}}
+            {%- endif %}{% if keycloak_dev_redirect_uri != '' %}
+            redirect-uri: {{keycloak_dev_redirect_uri}}
+            {%- endif %}
+        provider:
+          keycloak:
+            issuer-uri: {{keycloak_dev_issuer_uri}}
+      resourceserver:
+        jwt:
+          issuer-uri: {{keycloak_dev_issuer_uri}}
+{% endif %}
+{% if add_core_iam_feign %}iam:
+  service:
+    baseUrl: http://pulse8-core-iam:3000
+    endpoints:
+      createTenant: /api/v1/iam/provision/tenant/{correlationId}
+      createRestAdminClientForTenant: /api/v1/iam/provision/rest-admin-client/{correlationId}
+      createTenantRole: /api/v1/iam/provision/tenant-role/{correlationId}
+      assignCompositeRole: /api/v1/iam/provision/composite-role/{correlationId}
+      assignTenantRole: /api/v1/iam/provision/tenant-role-to-tenant/{correlationId}{% endif %}

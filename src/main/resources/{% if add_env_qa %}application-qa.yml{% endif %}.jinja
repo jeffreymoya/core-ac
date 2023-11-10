@@ -1,0 +1,76 @@
+# Quality Assurance properties
+
+{% if add_database %}logging:
+  level:
+    com:
+      zaxxer:
+        hikari: DEBUG
+        hikari.HikariConfig: DEBUG{% endif %}{% if add_database %}
+
+{{artifact_id}}:
+  tenant-id: {{database_qa_schema}}{% endif %}
+
+spring:
+{% if add_database %}  datasource:
+    url: {{database_qa_url}}
+    username: {{database_qa_username}}
+    password: {{database_qa_password}}
+    {% if database_qa_system == 'postgres' %}driver-class-name: org.postgresql.Driver{% endif %}
+    type: com.zaxxer.hikari.HikariDataSource
+  jpa:
+    properties:
+      hibernate:
+        {% if database_qa_system == 'postgres' %}dialect: org.hibernate.dialect.PostgreSQLDialect{% endif %}
+    show-sql: true
+{% if add_liquibase %}  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-project.xml
+    enabled: true
+    default-schema: {{database_qa_schema}}
+    drop-first: false{% endif %}{% endif %}
+{% if add_kafka %}  kafka:
+    bootstrap-servers: {{kafka_qa_bootstrap_servers}}
+    security:
+      protocol: SASL_SSL
+    consumer:
+      properties:
+        sasl:
+          mechanism: PLAIN
+      group-id: {{kafka_qa_group_id}}
+      auto-offset-reset: earliest
+      default-topic: {{kafka_qa_default_topic}}
+    {%- if add_kafka_schema_registry %}
+    properties:
+      basic:
+        auth:
+          credentials:
+            source: USER_INFO
+          user:
+            info: ${SR_SECRET}{% endif %}{% endif %}
+{% if add_keycloak %}  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: {{keycloak_qa_client_id}}
+            authorization-grant-type: authorization_code
+            scope: openid{% if keycloak_qa_client_secret != '' %}
+            client-secret: {{keycloak_qa_client_secret}}
+            {%- endif %}{% if keycloak_qa_redirect_uri != '' %}
+            redirect-uri: {{keycloak_qa_redirect_uri}}
+            {%- endif %}
+        provider:
+          keycloak:
+            issuer-uri: {{keycloak_qa_issuer_uri}}
+      resourceserver:
+        jwt:
+          issuer-uri: {{keycloak_qa_issuer_uri}}
+{% endif %}
+{% if add_core_iam_feign %}iam:
+  service:
+    baseUrl: http://pulse8-core-iam:3000
+    endpoints:
+      createTenant: /api/v1/iam/provision/tenant/{correlationId}
+      createRestAdminClientForTenant: /api/v1/iam/provision/rest-admin-client/{correlationId}
+      createTenantRole: /api/v1/iam/provision/tenant-role/{correlationId}
+      assignCompositeRole: /api/v1/iam/provision/composite-role/{correlationId}
+      assignTenantRole: /api/v1/iam/provision/tenant-role-to-tenant/{correlationId}{% endif %}

@@ -1,0 +1,30 @@
+{
+    "type": "record",
+    "namespace": "com.synpulse8.pulse8.core",
+    "name": "ProvisionTenant",
+    "doc": "Schema for Provision Pulse8 Iam Tenant",
+    "aliases": [
+      "CREATE_TRIGGER_TENANT_PROVISIONING"
+    ],
+    "fields": [
+      {
+        "name": "SERIAL",
+        "type": "long"
+      },
+      {
+        "name": "CORRELATION_ID",
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      {
+        "name": "USER_ACCESS_TYPE",
+        "type": ["null", "string"],
+        "avro.java.string": "String"
+      },
+      {
+        "name": "TYPE",
+        "type": "string",
+        "avro.java.string": "String"
+      }
+    ]
+  }

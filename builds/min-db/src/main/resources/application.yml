@@ -1,0 +1,5 @@
+# Shared properties across all profiles
+
+yournamebackend:
+  hikari:
+    enabled: true

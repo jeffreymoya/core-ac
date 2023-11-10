@@ -1,0 +1,14 @@
+package {{group_id}}.{{artifact_id}}.repository;
+
+import {{group_id}}.{{artifact_id}}.entity.Article;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface ArticleJpaRepository extends JpaRepository<Article, Integer> {
+
+    Optional<Article> findById(Integer id);
+
+}

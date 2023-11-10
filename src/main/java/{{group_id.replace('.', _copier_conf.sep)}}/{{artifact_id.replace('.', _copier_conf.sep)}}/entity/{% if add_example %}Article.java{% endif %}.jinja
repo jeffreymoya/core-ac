@@ -1,0 +1,27 @@
+package {{group_id}}.{{artifact_id}}.entity;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+{% if add_database %}import jakarta.persistence.*;
+{% endif %}import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+{% if add_database %}@Entity
+@Table(name = "articles")
+{% endif %}@Data
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
+public class Article {
+
+{% if add_database %}    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+{% endif %}    @JsonProperty
+    private Integer id;
+
+{% if add_database %}    @Column(name = "caption")
+{% endif %}    @JsonProperty
+    private String caption;
+}

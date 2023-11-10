@@ -1,0 +1,67 @@
+name: {{github_actions_workflow_name}}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  IMAGE_REGISTRY: ghcr.io
+  SVC_NAME: {{project_id}}
+  IMAGE_NAME: {{project_id}}-${% raw %}{{ github.ref_name }}{% endraw %}
+  MAVEN_OPTS: -Djava.awt.headless=true
+  MAVEN_CLI_OPTS: -Dmaven.repo.local=./.m2/repository --batch-mode
+  AWS_REGION: ap-southeast-1
+  EKS_CLUSTER_NAME: pulse8-cluster
+  AWS_ROLE: arn:aws:iam::105815711361:role/github-actions-oidc-role
+  SERVER_USERNAME: ${% raw %}{{ secrets.JFROG_USER }}{% endraw %}
+  SERVER_PASSWORD: ${% raw %}{{ secrets.JFROG_TOKEN }}{% endraw %}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  buildAndPushImage:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${% raw %}{{github.ref_name}}{% endraw %}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "zulu"
+
+      - name: "Cache Maven packages"
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${% raw %}{{ runner.os }}{% endraw %}-m2-${% raw %}{{ hashFiles('**/pom.xml') }}{% endraw %}
+          restore-keys: ${% raw %}{{ runner.os }}{% endraw %}-m2
+
+      - name: "Build and push Spring backend template container"
+        uses: synpulse-group/s8-actions/custom-build-push-container@main
+        with:
+          docker-build-context-location: .
+          docker-file-path: Dockerfile
+          jfrog-user: ${% raw %}{{ secrets.JFROG_USER }}{% endraw %}
+          jfrog-password: ${% raw %}{{ secrets.JFROG_TOKEN }}{% endraw %}
+{% if add_sonar %}
+      - name: "Cache SonarCloud packages"
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${% raw %}{{ runner.os }}{% endraw %}-sonar
+          restore-keys: ${% raw %}{{ runner.os }}{% endraw %}-sonar
+
+      - name: "Analyze with SonarCloud"
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -s ./settings.xml -P sonar
+        env:
+          GITHUB_TOKEN: ${% raw %}{{ secrets.GITHUB_TOKEN }}{% endraw %}
+          SONAR_TOKEN: ${% raw %}{{ secrets.SONAR_TOKEN }}{% endraw %}{% endif %}

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+printStep() {
+    echo "\n==================================================================="
+    echo "STEP: $1"
+    echo "==================================================================="
+}
+
+printStep "Compile {{project_name}} and push image"
+sh ./compile.sh
+
+cd local
+
+printStep "Deploy {{project_id}} image"
+docker compose -p="{{docker_image_container_group}}" up -d
