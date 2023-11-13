@@ -1,0 +1,35 @@
+# Development properties
+
+server:
+  port: 3010
+
+logging:
+  level:
+    org:
+      apache:
+        kafka:
+          clients:
+            NetworkClient: ERROR
+
+spring:
+  security:
+      user:
+          name: admin
+          password: test
+      enabled: false
+      basic.enabled: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      properties:
+        acks: all
+    consumer:
+      group-id: main
+      auto-offset-reset: earliest
+      default-topic: general
+
+
+
+
+

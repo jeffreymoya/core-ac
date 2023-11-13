@@ -1,0 +1,34 @@
+version: "3"
+services:
+  spicedb:
+    container_name: spicedb
+    image: authzed/spicedb:latest
+    ports:
+      - "50051:50051"
+    command: serve --grpc-preshared-key "test_key"
+    environment:
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:50051 -Xms256m -Xmx4G"
+
+    networks:
+      - pulse8-central-bridge
+
+  pulse8-core-access-control:
+    container_name: pulse8-core-access-control
+    image: pulse8-core-access-control:latest
+    depends_on:
+      - spicedb
+    ports:
+      - "3010:3010"
+      - "5010:5010"
+    networks:
+      - pulse8-central-bridge
+    environment:
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5010 -Xms256m -Xmx4G"
+      SPICEDB_HOST: spicedb
+      SPICEDB_PORT: 50051
+      SPICEDB_PRESHARED_KEY: test_key
+
+networks:
+  pulse8-central-bridge:
+    name: pulse8-central-bridge
+    driver: bridge
