@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{project_id}}-config
-data:
-  JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{k8s_port_debug}} -Xms256m -Xmx4G"{% if add_database %}
-  SPRING_DATASOURCE_URL: {{k8s_database_url}}{% endif %}

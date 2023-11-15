@@ -1,0 +1,28 @@
+# Changes here will be overwritten by Copier
+add_aquasec: false
+add_core_iam_feign: false
+add_database: false
+add_docker: true
+add_env_prod: false
+add_env_qa: false
+add_example: false
+add_k8s: false
+add_kafka: true
+add_kafka_schema_registry: false
+add_keycloak: false
+add_sonar: false
+add_spock: false
+artifact_id_raw: access-control-svc
+docker_image_container_group: services
+docker_image_network_name: pulse8-central-bridge
+docker_image_port_debug: 5010
+docker_image_port_run: 3010
+github_actions_workflow_name: PULSE8-CORE ACCESS CONTROL BACKEND CI
+group_id: com.synpulse8.pulse8.core
+kafka_add_example: true
+kafka_dev_bootstrap_servers: localhost:9092
+kafka_dev_default_topic: general
+kafka_dev_group_id: main
+project_description: ''
+project_id: pulse8-core-access-control
+project_name: Pulse8 Core Access Control
