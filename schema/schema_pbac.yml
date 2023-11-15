@@ -6,7 +6,7 @@ schema: |
   definition organization {
     relation group: usergroup
     relation administrator: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator
-    relation direct_member: user
+    relation direct_member: user | usergroup#member | usergroup#direct_member | usergroup#system_administrator | usergroup#security_administrator
 
     permission admin = administrator
     permission member = direct_member + administrator + group->member
@@ -15,7 +15,7 @@ schema: |
   definition usergroup {
     relation system_administrator : user | usergroup#member | usergroup#system_administrator
     relation security_administrator : user | usergroup#member | usergroup#security_administrator
-    relation direct_member: user | usergroup#member | usergroup#direct_member
+    relation direct_member: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator | usergroup#direct_member
 
     permission system_admin = system_administrator
     permission security_admin = security_administrator
@@ -41,9 +41,9 @@ schema: |
   // test - usermanagement policy
   definition policy/usermanagement{
     relation owner : user 
-    relation viewer : usergroup#member
+    relation viewer : usergroup#member | usergroup#direct_member
     relation admin : usergroup#system_admin | usergroup#system_administrator
-    
+  
     permission view_profile = viewer
     permission edit_contact = owner + admin
     permission delete_profile = owner + admin
