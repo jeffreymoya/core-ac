@@ -34,7 +34,7 @@ public class SchemaService {
             channel = ManagedChannelBuilder
                     .forAddress(spicedbHost, spicedbPort)
                     // If SpiceDB requires TLS:
-                    // .useTransportSecurity()
+//                     .useTransportSecurity()
                     .usePlaintext()
                     .build();
         }

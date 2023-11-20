@@ -1,5 +1,4 @@
 # Development properties
-
 server:
   port: 3010
 
