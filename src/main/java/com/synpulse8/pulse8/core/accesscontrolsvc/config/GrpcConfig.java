@@ -1,5 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.config;
 
+import com.authzed.api.v1.SchemaServiceGrpc;
 import com.authzed.grpcutil.BearerToken;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -28,5 +29,15 @@ public class GrpcConfig {
                 .usePlaintext()
                 .build();
         return PermissionsServiceGrpc.newBlockingStub(channel).withCallCredentials(bearerToken);
+    }
+
+    @Bean
+    public SchemaServiceGrpc.SchemaServiceBlockingStub schemaService() {
+        BearerToken bearerToken = new BearerToken(spiceDbPresharedKey);
+
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(spicedbHost, spicedbPort)
+                .usePlaintext()
+                .build();
+        return SchemaServiceGrpc.newBlockingStub(channel).withCallCredentials(bearerToken);
     }
 }
