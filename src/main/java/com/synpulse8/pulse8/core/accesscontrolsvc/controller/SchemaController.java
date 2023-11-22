@@ -2,10 +2,9 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.http.HttpHeaders;
 
 @RestController
 @RequestMapping(value = "/")
@@ -16,8 +15,8 @@ public class SchemaController {
 
     @GetMapping(value = "/")
     public @ResponseBody
-    String index() {
-        return "Pulse8 Core Access Control";
+    String index(@RequestHeader("X-Consumer-Custom-ID") String userid) {
+        return "Pulse8 Core Access Control User: " + userid;
     }
 
     @GetMapping(value = "/get-schema")
