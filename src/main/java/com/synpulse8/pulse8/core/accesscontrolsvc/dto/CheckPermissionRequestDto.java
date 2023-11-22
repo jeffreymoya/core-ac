@@ -12,9 +12,20 @@ public class CheckPermissionRequestDto {
     private String objectId;
     private String subjRefObjType;
     private String subjRefObjId;
+    private String subjRelation;
     private String permission;
 
     public PermissionService.CheckPermissionRequest toCheckPermissionRequest() {
+        Core.SubjectReference.Builder subjectBuilder = Core.SubjectReference.newBuilder()
+                .setObject(
+                        Core.ObjectReference.newBuilder()
+                                .setObjectType(subjRefObjType)
+                                .setObjectId(subjRefObjId)
+                                .build());
+        if (subjRelation != null && !subjRelation.isEmpty()){
+            subjectBuilder.setOptionalRelation(subjRelation);
+        }
+        Core.SubjectReference subject = subjectBuilder.build();
 
         return PermissionService.CheckPermissionRequest.newBuilder()
                 .setConsistency(
@@ -26,14 +37,7 @@ public class CheckPermissionRequestDto {
                                 .setObjectType(objectType)
                                 .setObjectId(objectId)
                                 .build())
-                .setSubject(
-                        Core.SubjectReference.newBuilder()
-                                .setObject(
-                                        Core.ObjectReference.newBuilder()
-                                                .setObjectType(subjRefObjType)
-                                                .setObjectId(subjRefObjId)
-                                                .build())
-                                .build())
+                .setSubject(subject)
                 .setPermission(permission)
                 .build();
 
