@@ -6,6 +6,12 @@ consumers:
     key: ***BFG REMOVED***
     secret: ***BFG REMOVED***
   username: pulse8core
+- custom_id: pulse8admin
+  jwt_secrets:
+    - algorithm: HS256
+      key: ***BFG REMOVED***
+      secret: ***BFG REMOVED***
+  username: pulse8admin
 plugins:
 - config:
     anonymous: null
