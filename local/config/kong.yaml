@@ -1,0 +1,72 @@
+_format_version: "3.0"
+consumers:
+- custom_id: pulse8
+  jwt_secrets:
+  - algorithm: HS256
+    key: ***BFG REMOVED***
+    secret: ***BFG REMOVED***
+  username: pulse8core
+- custom_id: pulse8admin
+  jwt_secrets:
+    - algorithm: HS256
+      key: ***BFG REMOVED***
+      secret: ***BFG REMOVED***
+  username: pulse8admin
+plugins:
+- config:
+    anonymous: null
+    claims_to_verify:
+    - exp
+    cookie_names: []
+    header_names:
+    - authorization
+    key_claim_name: kid
+    maximum_expiration: 0
+    run_on_preflight: true
+    secret_is_base64: false
+    uri_param_names:
+    - jwt
+  enabled: true
+  instance_name: pulse8-jwt
+  name: jwt
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  route: pulse8-core-access-control-index
+  service: pulse8-core-access-control
+  tags:
+  - jwt
+services:
+- connect_timeout: 60000
+  enabled: true
+  host: pulse8-core-access-control
+  name: pulse8-core-access-control
+  port: 3010
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    name: pulse8-core-access-control-index
+    path_handling: v0
+    paths:
+    - /pulse8
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+    tags:
+    - index
+    - access control
+    - hello
+  tags:
+  - security
+  - ' access control'
+  - ' acl'
+  write_timeout: 60000
