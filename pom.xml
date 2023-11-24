@@ -29,6 +29,7 @@
         <authzed.version>0.6.0</authzed.version>
         <grpc-protobuf.version>1.59.0</grpc-protobuf.version>
         <grpc-stub.version>1.59.0</grpc-stub.version>
+        <grpc-netty-shaded.version>1.59.0</grpc-netty-shaded.version>
 
         <sonar.exclusions>
             **/P8CApplication.java,
@@ -52,6 +53,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+        </dependency>
+
 
         <!-- Authentication -->
         <dependency>
@@ -107,7 +113,18 @@
             <version>${junit-vintage-engine.version}</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.3.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>spring-mock-mvc</artifactId>
+            <version>5.3.2</version>
+            <scope>test</scope>
+        </dependency>
         <!-- Utils -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -130,6 +147,18 @@
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
             <version>${grpc-stub.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-okhttp</artifactId>
+            <version>${grpc-stub.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+            <version>${grpc-netty-shaded.version}</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
     <dependencyManagement>
@@ -188,6 +217,9 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <argLine>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005</argLine>
+                        </configuration>
                         <dependencies>
                             <dependency>
                                 <groupId>org.junit.jupiter</groupId>
