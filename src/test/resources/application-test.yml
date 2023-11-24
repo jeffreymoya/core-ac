@@ -1,0 +1,12 @@
+SPICEDB_HOST: localhost
+SPICEDB_PORT: 50051
+SPICEDB_PRESHARED_KEY: pulse8
+
+logging:
+    level:
+      root: error
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
