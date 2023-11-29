@@ -44,6 +44,7 @@ public class PermissionsSteps {
                 .subjRefObjId("emilia")
                 .permission("read")
                 .build();
+
         response = given()
                 .contentType("application/json")
                 .body(objectMapper.writeValueAsString(dto))

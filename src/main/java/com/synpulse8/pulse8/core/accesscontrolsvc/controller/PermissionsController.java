@@ -2,6 +2,10 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
 import com.authzed.api.v1.PermissionService.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckPermissionRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupResourcesRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupResourcesResponseDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupSubjectsRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupSubjectsResponseDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -63,14 +68,14 @@ public class PermissionsController {
     }
 
     @PostMapping("/permissions/resources")
-    public CompletableFuture<ResponseEntity<Iterator<LookupResourcesResponse>>> lookupResources(@RequestBody LookupResourcesRequest requestBody) {
-        return permissionsService.lookupResources(requestBody)
-                .thenApply(ResponseEntity::ok);
+    public CompletableFuture<ResponseEntity<List<LookupResourcesResponseDto>>> lookupResources(@RequestBody LookupResourcesRequestDto requestBody) {
+        return permissionsService.lookupResources(requestBody.toLookupResourcesRequest())
+                .thenApply(list -> ResponseEntity.ok(LookupResourcesResponseDto.fromList(list)));
     }
 
     @PostMapping("/permissions/subjects")
-    public CompletableFuture<ResponseEntity<Iterator<LookupSubjectsResponse>>> lookupSubjects(@RequestBody LookupSubjectsRequest requestBody) {
-        return permissionsService.lookupSubjects(requestBody)
-                .thenApply(ResponseEntity::ok);
+    public CompletableFuture<ResponseEntity<List<LookupSubjectsResponseDto>>> lookupSubjects(@RequestBody LookupSubjectsRequestDto requestBody) {
+        return permissionsService.lookupSubjects(requestBody.toLookupSubjectsRequest())
+                .thenApply(list -> ResponseEntity.ok(LookupSubjectsResponseDto.fromList(list)));
     }
 }
