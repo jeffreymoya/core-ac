@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -50,13 +51,13 @@ public class PermissionsController {
     }
 
     @PostMapping("/permissions/check")
-    public CompletableFuture<ResponseEntity<String>> checkPermissions(@RequestBody CheckPermissionRequestDto requestBody) {
+    public CompletableFuture<ResponseEntity<Object>> checkPermissions(@RequestBody CheckPermissionRequestDto requestBody) {
         return permissionsService.checkPermissions(requestBody.toCheckPermissionRequest())
                 .thenApply(x -> {
                     if (x.getPermissionship() == CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION) {
-                        return ResponseEntity.ok(x.getPermissionship().name());
+                        return ResponseEntity.ok(Collections.singletonMap("has_permission", true));
                     } else {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(x.getPermissionship().name());
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("has_permission", false));
                     }
                 });
     }
