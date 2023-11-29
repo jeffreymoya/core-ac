@@ -10,9 +10,6 @@ import java.net.http.HttpHeaders;
 @RequestMapping(value = "/")
 public class SchemaController {
 
-    @Autowired
-    SchemaService service;
-
     @GetMapping(value = "/")
     public @ResponseBody
     String index(@RequestHeader("X-Consumer-Custom-ID") String userid) {
@@ -22,7 +19,7 @@ public class SchemaController {
     @GetMapping(value = "/get-schema")
     public @ResponseBody
     String getSchema() {
-        return service.getSchema();
+        return null;
     }
 
 }
