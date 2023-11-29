@@ -1,7 +1,5 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
-import io.cucumber.java.AfterAll;
-import io.cucumber.java.BeforeAll;
 import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 import io.cucumber.spring.CucumberContextConfiguration;
@@ -45,14 +43,4 @@ public class PermissionsIntegrationTest {
         registry.add("SPICEDB_PORT", () -> spicedb.getFirstMappedPort());
         registry.add("SPICEDB_PRESHARED_KEY", () -> "integration_test-key");
     }
-    @BeforeAll
-    public static void setUp() {
-        spicedb.start();
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        spicedb.stop();
-    }
-
 }
