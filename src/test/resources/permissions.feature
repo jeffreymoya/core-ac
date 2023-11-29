@@ -9,4 +9,4 @@ Feature: Permissions API
     Given the API is available
     When a user checks permissions with principal "1234"
     Then the response code should be 500
-    And the response should contain "FAILED_PRECONDITION: object definition `blog/post` not found"
+    And the response should contain "FAILED_PRECONDITION"

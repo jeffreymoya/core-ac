@@ -1,6 +1,6 @@
 logging:
     level:
-      root: debug
+      root: error
       org:
         apache:
           kafka: off
