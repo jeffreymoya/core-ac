@@ -17,7 +17,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @ControllerAdvice
 public class SpiceDBExceptionHandler extends ResponseEntityExceptionHandler {
@@ -25,7 +27,10 @@ public class SpiceDBExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({StatusRuntimeException.class})
     public ResponseEntity<Object> statusRuntimeException(StatusRuntimeException ex, HttpServletRequest request) throws IOException {
-        return new ResponseEntity<>(Collections.singletonMap("error", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        List<String> errorMessages = Arrays.asList(ex.getMessage().split(":"));
+        String errorMessage = errorMessages.get(0);
+
+        return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @ExceptionHandler({InvalidDefinitionException.class})
     public ResponseEntity<Object> invalidDefinitionException(InvalidDefinitionException ex, HttpServletRequest request) throws IOException {
