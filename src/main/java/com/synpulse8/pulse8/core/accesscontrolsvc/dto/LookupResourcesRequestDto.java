@@ -10,8 +10,10 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class CheckPermissionRequestDto extends PermissionRequestDto {
-    public PermissionService.CheckPermissionRequest toCheckPermissionRequest() {
+public class LookupResourcesRequestDto extends PermissionRequestDto {
+    private String resourceObjectType;
+
+    public PermissionService.LookupResourcesRequest toLookupResourcesRequest() {
         Core.SubjectReference.Builder subjectBuilder = Core.SubjectReference.newBuilder()
                 .setObject(
                         Core.ObjectReference.newBuilder()
@@ -23,16 +25,12 @@ public class CheckPermissionRequestDto extends PermissionRequestDto {
         }
         Core.SubjectReference subject = subjectBuilder.build();
 
-        return PermissionService.CheckPermissionRequest.newBuilder()
+        return PermissionService.LookupResourcesRequest.newBuilder()
                 .setConsistency(
                         PermissionService.Consistency.newBuilder()
                                 .setMinimizeLatency(true)
                                 .build())
-                .setResource(
-                        Core.ObjectReference.newBuilder()
-                                .setObjectType(objectType)
-                                .setObjectId(objectId)
-                                .build())
+                .setResourceObjectType(resourceObjectType)
                 .setSubject(subject)
                 .setPermission(permission)
                 .build();

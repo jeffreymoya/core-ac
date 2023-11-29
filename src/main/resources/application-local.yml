@@ -1,0 +1,32 @@
+# Development properties
+server:
+  port: 3010
+
+logging:
+  level:
+    root: debug
+    org:
+      apache:
+        kafka: off
+      springframework:
+        kafka: off
+
+spring:
+  security:
+    csrf:
+      enabled: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      properties:
+        acks: all
+    consumer:
+      group-id: main
+      auto-offset-reset: earliest
+      default-topic: general
+
+
+
+
+
