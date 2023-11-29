@@ -10,14 +10,6 @@ logging:
           clients:
             NetworkClient: ERROR
 
-spring:
-  security:
-      user:
-          name: admin
-          password: test
-      enabled: false
-      basic.enabled: false
-
   kafka:
     bootstrap-servers: localhost:9092
     producer:
