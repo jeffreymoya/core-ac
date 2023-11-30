@@ -7,7 +7,7 @@ COPY src build/src
 COPY pom.xml /build
 COPY settings.xml /build
 
-RUN mvn -s /build/settings.xml -f /build/pom.xml clean install -P ci
+RUN mvn -s /build/settings.xml -f /build/pom.xml clean install -P ci -DskipTests
 
 FROM openjdk:17-alpine
 COPY --from=build /build/target/*-exec.jar pulse8-core-access-control.jar

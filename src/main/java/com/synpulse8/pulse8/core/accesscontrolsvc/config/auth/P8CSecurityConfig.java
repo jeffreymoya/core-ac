@@ -1,6 +1,7 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.config.auth;
 
 import com.synpulse8.pulse8.core.accesscontrolsvc.provider.auth.RequestHeadeAuthenticationProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +23,9 @@ import java.util.Collections;
 @EnableWebSecurity
 public class P8CSecurityConfig {
 
+    @Value("${p8c.security.principal-header}")
+    private String principalHeader;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -35,7 +39,7 @@ public class P8CSecurityConfig {
     @Bean
     public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-        filter.setPrincipalRequestHeader("X-Consumer-Custom-ID");
+        filter.setPrincipalRequestHeader(principalHeader);
         filter.setExceptionIfHeaderMissing(false);
         filter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/**"));
         filter.setAuthenticationManager(authenticationManager());

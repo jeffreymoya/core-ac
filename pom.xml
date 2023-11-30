@@ -40,7 +40,9 @@
             **/accesscontrolsvc/controller/**.java,
             **/accesscontrolsvc/repository/**.java
         </sonar.exclusions>
-	  </properties>
+        <testcontainers.version>1.18.0</testcontainers.version>
+        <testcontainers-junit-jupiter.version>1.18.3</testcontainers-junit-jupiter.version>
+    </properties>
       
 
     <dependencies>
@@ -155,6 +157,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers-junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
             <version>${grpc-netty-shaded.version}</version>
@@ -217,14 +231,11 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${maven-surefire-plugin.version}</version>
-                        <configuration>
-                            <argLine>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005</argLine>
-                        </configuration>
                         <dependencies>
                             <dependency>
-                                <groupId>org.junit.jupiter</groupId>
-                                <artifactId>junit-jupiter-engine</artifactId>
-                                <version>${junit-jupiter-engine.version}</version>
+                                <groupId>org.apache.maven.surefire</groupId>
+                                <artifactId>surefire-junit47</artifactId>
+                                <version>3.1.2</version>
                             </dependency>
                         </dependencies>
                     </plugin>
@@ -289,6 +300,18 @@
                                 <image>pulse8-core-access-control</image>
                             </to>
                         </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.apache.maven.surefire</groupId>
+                                <artifactId>surefire-junit47</artifactId>
+                                <version>3.1.2</version>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                 </plugins>
             </build>
@@ -372,9 +395,9 @@
                         <version>${maven-surefire-plugin.version}</version>
                         <dependencies>
                             <dependency>
-                                <groupId>org.junit.jupiter</groupId>
-                                <artifactId>junit-jupiter-engine</artifactId>
-                                <version>${junit-jupiter-engine.version}</version>
+                                <groupId>org.apache.maven.surefire</groupId>
+                                <artifactId>surefire-junit47</artifactId>
+                                <version>3.1.2</version>
                             </dependency>
                         </dependencies>
                     </plugin>
