@@ -30,8 +30,11 @@ public class P8CSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         return http.authorizeHttpRequests((auth) -> auth
-                        .anyRequest().authenticated()
-                ).addFilter(requestHeaderAuthenticationFilter())
+                        .requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/error").permitAll()
+                        .requestMatchers("/v1/**")
+                        .authenticated()
+                )
+                .addFilter(requestHeaderAuthenticationFilter())
                 .csrf(AbstractHttpConfigurer::disable)
                 .build();
     }
@@ -41,7 +44,7 @@ public class P8CSecurityConfig {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(principalHeader);
         filter.setExceptionIfHeaderMissing(false);
-        filter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/**"));
+        filter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/v1/**"));
         filter.setAuthenticationManager(authenticationManager());
         return filter;
     }
