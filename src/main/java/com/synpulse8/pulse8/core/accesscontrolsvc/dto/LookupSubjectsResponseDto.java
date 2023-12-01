@@ -1,6 +1,7 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
 import com.authzed.api.v1.PermissionService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,6 +12,7 @@ import java.util.stream.StreamSupport;
 
 @Getter
 @Builder
+@Schema(description = "DTO for list of subjects")
 public class LookupSubjectsResponseDto {
     private SubjectDto subject;
     private List<SubjectDto> excludedSubjects;
