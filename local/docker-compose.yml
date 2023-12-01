@@ -29,23 +29,12 @@ services:
       SPICEDB_PORT: 50051
       SPICEDB_PRESHARED_KEY: test_key
   echo-server:
-    container_name: echoserver
+    container_name: "echoserver"
     image: inanimate/echo-server:latest
     ports:
-      - 3000:8080
-  keycloak:
-    container_name: pulse8-keycloak
-    image: quay.io/keycloak/keycloak:21.1.1
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    command:
-      - start-dev
-      - --import-realm
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./keycloak/realm.json:/opt/keycloak/data/import/realm.json
+      - "3000:8080"
+    networks:
+      - pulse8-central-bridge
   kong:
     image: kong/kong-gateway:3.5
     container_name: pulse8-kong
@@ -58,9 +47,8 @@ services:
       - ./certs:/certs
     ports:
       - 8000:8000
-      - 8001:8001
-      - 8002:8002
-
+    networks:
+      - pulse8-central-bridge
 networks:
   pulse8-central-bridge:
     name: pulse8-central-bridge
