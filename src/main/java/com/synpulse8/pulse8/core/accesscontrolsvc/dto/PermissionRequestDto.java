@@ -2,9 +2,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -32,7 +30,7 @@ public class PermissionRequestDto {
     @Schema(description = "ID of the subject reference", example = "john01")
     protected String subjRefObjId;
 
-    @Schema(description = "Subject relation", example = "policy_owner")
+    @Schema(description = "Subject relation", example = "employee")
     protected String subjRelation;
 
     @Schema(description = "Requested permission", example = "create_policy")

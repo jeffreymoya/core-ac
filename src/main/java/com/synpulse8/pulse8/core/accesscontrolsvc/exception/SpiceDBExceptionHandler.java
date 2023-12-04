@@ -1,42 +1,43 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
-import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsServiceImpl;
 import io.grpc.StatusRuntimeException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@ControllerAdvice
-public class SpiceDBExceptionHandler extends ResponseEntityExceptionHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SpiceDBExceptionHandler.class);
-
+@RestControllerAdvice
+public class SpiceDBExceptionHandler {
     @ExceptionHandler({StatusRuntimeException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> statusRuntimeException(StatusRuntimeException ex, HttpServletRequest request) throws IOException {
         List<String> errorMessages = Arrays.asList(ex.getMessage().split(":"));
         String errorMessage = errorMessages.get(0);
 
-        return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new P8CError(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @ExceptionHandler({InvalidDefinitionException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> invalidDefinitionException(InvalidDefinitionException ex, HttpServletRequest request) throws IOException {
-        return new ResponseEntity<>(Collections.singletonMap("error", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new P8CError(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String error = ex.getBindingResult().getAllErrors().stream()
+                .map(ObjectError::getDefaultMessage)
+                .collect(Collectors.joining("; "));
+        return new ResponseEntity<>(new P8CError(error), HttpStatus.BAD_REQUEST);
     }
 }
