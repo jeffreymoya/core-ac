@@ -2,7 +2,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
 import com.authzed.api.v1.Core;
 import com.authzed.api.v1.PermissionService;
-import lombok.Builder;
+import com.google.protobuf.Struct;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -23,7 +23,7 @@ public class CheckPermissionRequestDto extends PermissionRequestDto {
         }
         Core.SubjectReference subject = subjectBuilder.build();
 
-        return PermissionService.CheckPermissionRequest.newBuilder()
+        PermissionService.CheckPermissionRequest.Builder builder = PermissionService.CheckPermissionRequest.newBuilder()
                 .setConsistency(
                         PermissionService.Consistency.newBuilder()
                                 .setMinimizeLatency(true)
@@ -34,8 +34,16 @@ public class CheckPermissionRequestDto extends PermissionRequestDto {
                                 .setObjectId(objectId)
                                 .build())
                 .setSubject(subject)
-                .setPermission(permission)
-                .build();
+                .setPermission(permission);
+
+        if (context != null && !context.isEmpty()) {
+            Struct contextBuilder = Struct.newBuilder()
+                    .putAllFields(ContextMapper.convertMap(context))
+                    .build();
+            builder.setContext(contextBuilder);
+        }
+
+        return builder.build();
 
     }
 }
