@@ -1,0 +1,10 @@
+# a very minimal declarative config file
+_format_version: "2.1"
+_transform: true
+
+plugins:
+- name: checkpermission
+  enabled: true
+  config:
+    pdp_endpoint: http://192.168.1.2:3001/v1/pdp
+    auth_user_header: "X-Authenticated-User"

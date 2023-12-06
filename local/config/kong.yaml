@@ -38,6 +38,21 @@ plugins:
   service: pulse8-core-access-control
   tags:
   - jwt
+- name: checkpermission
+  enabled: true
+  config:
+    pdp_endpoint: http://localhost:3010/v1/permissions/check
+    auth_user_header: "X-Authenticated-User"
+  protocols:
+    - grpc
+    - grpcs
+    - http
+    - https
+  route: pulse8-core-access-control-index
+  service: pulse8-core-access-control
+  tags:
+    - checkpermission
+
 services:
 - connect_timeout: 60000
   enabled: true

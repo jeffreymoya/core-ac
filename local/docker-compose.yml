@@ -43,8 +43,12 @@ services:
     environment:
       KONG_CLUSTER_CERT_KEY: /certs/cluster.key
       KONG_CLUSTER_CERT: /certs/cluster.crt
+      KONG_DECLARATIVE_CONFIG: "/opt/kong/kong.yaml"
+      KONG_LUA_PACKAGE_PATH: /opt/kong/plugins/checkpermission/?.lua;;
+      KONG_PLUGINS: bundled,checkpermission
     volumes:
       - ./certs:/certs
+      - ./config:/opt/kong
     ports:
       - 8000:8000
     networks:
