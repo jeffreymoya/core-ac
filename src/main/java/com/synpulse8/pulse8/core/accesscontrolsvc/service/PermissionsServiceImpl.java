@@ -2,6 +2,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.service;
 
 import com.authzed.api.v1.PermissionService.*;
 import com.authzed.api.v1.PermissionsServiceGrpc;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckRoutePermissionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,11 @@ public class PermissionsServiceImpl implements PermissionsService {
     @Override
     public CompletableFuture<CheckPermissionResponse> checkPermissions(CheckPermissionRequest request) {
         return runAsyncTask(() -> permissionsService.checkPermission(request));
+    }
+
+    @Override
+    public CompletableFuture<CheckPermissionResponse> checkRoute(CheckRoutePermissionDto request) {
+        return runAsyncTask(() -> permissionsService.checkPermission(request.toCheckPermissionRequest()));
     }
 
     @Override
