@@ -18,7 +18,7 @@ public class LookupSubjectsRequestDto extends PermissionRequestDto {
     private String subjectObjectType;
 
     public PermissionService.LookupSubjectsRequest toLookupSubjectsRequest() {
-        return PermissionService.LookupSubjectsRequest.newBuilder()
+        PermissionService.LookupSubjectsRequest.Builder subjectBuilder = PermissionService.LookupSubjectsRequest.newBuilder()
                 .setConsistency(
                         PermissionService.Consistency.newBuilder()
                                 .setMinimizeLatency(true)
@@ -27,10 +27,15 @@ public class LookupSubjectsRequestDto extends PermissionRequestDto {
                         Core.ObjectReference.newBuilder()
                                 .setObjectType(objectType)
                                 .setObjectId(objectId)
-                                .build())
-                .setPermission(permission)
-                .setSubjectObjectType(subjectObjectType)
-                .build();
+                                .build());
+
+        if (subjRelation != null && !subjRelation.isEmpty()){
+            subjectBuilder.setOptionalSubjectRelation(subjRelation);
+        }
+
+        return subjectBuilder.setPermission(permission)
+                    .setSubjectObjectType(subjectObjectType)
+                    .build();
 
     }
 
@@ -43,12 +48,6 @@ public class LookupSubjectsRequestDto extends PermissionRequestDto {
     @Override
     @Schema(hidden = true)
     public String getSubjRefObjId() {
-        return null;
-    }
-
-    @Override
-    @Schema(hidden = true)
-    public String getSubjRelation() {
         return null;
     }
 }

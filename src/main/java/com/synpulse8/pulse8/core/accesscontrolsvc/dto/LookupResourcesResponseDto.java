@@ -4,6 +4,7 @@ import com.authzed.api.v1.PermissionService;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;

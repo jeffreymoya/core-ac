@@ -100,5 +100,37 @@
         "permission": "edit_contact"
       }
     }
+  },
+  "lookup": {
+    "subjects": {
+      "request": {
+        "objectType": "policy",
+        "objectId": "usermanagement",
+        "permission": "create_policy",
+        "subjectObjectType": "usergroup",
+        "subjRelation": "security_administrator"
+      },
+      "response": [
+        {
+          "permission": 1,
+          "subjectObjectId": "securityAdminGrp"
+        }
+      ]
+    },
+    "resources": {
+      "request": {
+        "resourceObjectType": "policy",
+        "subjRefObjType": "usergroup",
+        "subjRefObjId": "securityAdminGrp",
+        "subjRelation": "security_administrator",
+        "permission": "policy_manager"
+      },
+      "response": [
+        {
+          "permission": 1,
+          "resourceObjectId": "usermanagement"
+        }
+      ]
+    }
   }
 }
