@@ -2,8 +2,11 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
 import com.authzed.api.v1.Core;
 import com.authzed.api.v1.PermissionService;
+import com.google.protobuf.Struct;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,18 +15,15 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class WriteRelationshipRequestDto {
 
-    private List<Update> updates;
+    private List<WriteRelationshipUpdate> updates;
 
     @Getter
+    @SuperBuilder
     @NoArgsConstructor
-    private static class Update {
-        private String objectType;
-        private String objectId;
-        private String relation;
-        private String subjRefObjType;
-        private String subjRefObjId;
-        private String subjRelation;
-        private static final Core.RelationshipUpdate.Operation operation = Core.RelationshipUpdate.Operation.OPERATION_CREATE;
+    private static class WriteRelationshipUpdate extends RelationshipRequestDto {
+
+        @Schema(description = "Relationship update operation", example = "OPERATION_CREATE")
+        protected Core.RelationshipUpdate.Operation operation = Core.RelationshipUpdate.Operation.OPERATION_CREATE;
 
     }
 
@@ -38,7 +38,7 @@ public class WriteRelationshipRequestDto {
         return request;
     }
 
-    public Core.RelationshipUpdate buildRelationshipUpdate(Update update) {
+    public Core.RelationshipUpdate buildRelationshipUpdate(WriteRelationshipUpdate update) {
         Core.ObjectReference resource = Core.ObjectReference.newBuilder()
                 .setObjectType(update.objectType)
                 .setObjectId(update.objectId)
@@ -53,15 +53,28 @@ public class WriteRelationshipRequestDto {
             subjectBuilder.setOptionalRelation(update.subjRelation);
         }
         Core.SubjectReference subject = subjectBuilder.build();
+        Core.Relationship.Builder relationshipBuilder = Core.Relationship.newBuilder()
+                .setResource(resource)
+                .setRelation(update.relation)
+                .setSubject(subject);
+
+        if (update.caveatName != null && !update.caveatName.isEmpty()) {
+            Core.ContextualizedCaveat.Builder caveatBuilder = Core.ContextualizedCaveat.newBuilder()
+                    .setCaveatName(update.caveatName);
+            if (update.context != null && !update.context.isEmpty()) {
+                Struct contextBuilder = Struct.newBuilder()
+                        .putAllFields(ContextMapper.convertMap(update.context))
+                        .build();
+                caveatBuilder.setContext(contextBuilder);
+            }
+            relationshipBuilder.setOptionalCaveat(caveatBuilder.build());
+        }
+
+        Core.Relationship relationship = relationshipBuilder.build();
 
         Core.RelationshipUpdate relationshipUpdate = Core.RelationshipUpdate.newBuilder()
                 .setOperation(update.operation)
-                .setRelationship(
-                        Core.Relationship.newBuilder()
-                                .setResource(resource)
-                                .setRelation(update.relation)
-                                .setSubject(subject)
-                                .build())
+                .setRelationship(relationship)
                 .build();
         return relationshipUpdate;
     }
