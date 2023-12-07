@@ -1,10 +1,10 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.enums;
 
 public enum HttpMethodPermission {
-    VIEW("GET", "view_route"),
-    UPDATE("PUT", "update_route"),
-    CREATE("POST", "create_route"),
-    DELETE("DELETE", "delete_route");
+    VIEW("GET", "view"),
+    UPDATE("PUT", "update"),
+    CREATE("POST", "create"),
+    DELETE("DELETE", "delete");
 
     private final String value;
     private final String permission;
