@@ -26,12 +26,16 @@ function Utils.checkPermission(user, routePath, httpMethod, plugin_conf)
   kong.log.debug("Response headers: ", cjson.encode(res.headers))
   kong.log.debug("Response body: ", res.body)
 
-  -- Return false if the status code is 403
-  if res.status == 403 then
+  if res.status == 500 then
+    kong.log.err("Server error when checking permission: ", res.body)
     return false
   end
 
-  return true
+  if res.status == 200 then
+    return true
+  end
+
+  return false
 end
 
 return Utils
