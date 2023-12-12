@@ -1,80 +1,88 @@
   /** schema for pulse8 */
-    
-    /** user represents a user */
-    definition user {}
-    
-    definition organization {
-  relation group: usergroup
-  relation administrator: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator
-  relation direct_member: user | usergroup#member | usergroup#direct_member | usergroup#system_administrator | usergroup#security_administrator
-    
+
+  /** user represents a user */
+  definition user {}
+
+  definition organization {
+    relation group: usergroup
+    relation administrator: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator
+    relation direct_member: user | usergroup#member | usergroup#direct_member | usergroup#system_administrator | usergroup#security_administrator
+
     permission admin = administrator
     permission member = direct_member + administrator + group->member
+
+    permission view = administrator + direct_member
+    permission update = administrator
+    permission delete = administrator
+    permission create = administrator
   }
 
-    definition usergroup {
-  relation system_administrator : user | usergroup#member | usergroup#system_administrator
-  relation security_administrator : user | usergroup#member | usergroup#security_administrator
-  relation direct_member: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator | usergroup#direct_member
-    
+  definition usergroup {
+    relation system_administrator : user | usergroup#member | usergroup#system_administrator
+    relation security_administrator : user | usergroup#member | usergroup#security_administrator
+    relation direct_member: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator | usergroup#direct_member
+
     permission system_admin = system_administrator
     permission security_admin = security_administrator
     permission member = direct_member
+
+    permission view = system_administrator + security_administrator + direct_member
+    permission update = system_administrator + security_administrator
+    permission delete = system_administrator + security_administrator
+    permission create = system_administrator + security_administrator
   }
 
-    /** policy represents a policy */
-    definition policy{
-  relation group : usergroup
-  relation policy_manager : user | usergroup#security_admin | usergroup#security_administrator
-  relation policy_member : user | usergroup#member | usergroup#system_administrator | usergroup#system_admin | usergroup#direct_member
-  relation policy_creator : user | usergroup#security_admin | usergroup#security_administrator
-    
-    permission create_policy = policy_creator + policy_manager
-    permission view_policy = policy_creator + policy_manager + policy_member
-    permission edit_policy = policy_creator + policy_manager
-    permission delete_policy = group->security_admin
-    
-    /** assign policy to someone */
+  /** policy represents a policy */
+  definition policy{
+    relation group : usergroup
+    relation policy_manager : user | usergroup#security_admin | usergroup#security_administrator
+    relation policy_member : user | usergroup#member | usergroup#system_administrator | usergroup#system_admin | usergroup#direct_member
+    relation policy_creator : user | usergroup#security_admin | usergroup#security_administrator
+
+    permission create = policy_creator + policy_manager
+    permission view = policy_creator + policy_manager + policy_member
+    permission update = policy_creator + policy_manager
+    permission delete = group->security_admin
   }
 
-    /** test - usermanagement policy */
-    definition policy/usermanagement{
-  relation owner : user
-  relation viewer : usergroup#member | usergroup#direct_member
-  relation admin : usergroup#system_admin | usergroup#system_administrator
-    
-    permission view_profile = viewer
-    permission edit_contact = owner + admin
-    permission delete_profile = owner + admin
+  /** test - usermanagement policy */
+  definition policy/usermanagement{
+    relation owner : user
+    relation viewer : usergroup#member | usergroup#direct_member | usergroup#system_administrator
+    relation admin : usergroup#system_admin | usergroup#system_administrator
 
-  }
-
-    definition userprofile{
-  relation owner : user
-  relation viewer : usergroup#member | usergroup#direct_member
-  relation admin : usergroup#system_admin | usergroup#system_administrator
-    
-    permission view_profile = viewer
-    permission edit_contact = owner + admin
-    permission delete_profile = owner + admin
+    permission view = owner + viewer
+    permission update = owner + admin
+    permission delete = owner + admin
+    permission create = owner + admin
 
   }
 
-    definition logs{
-  relation manager : usergroup#security_administrator | usergroup#security_admin
-    
-    permission view_logs = manager
-    permission delete_logs = manager
+  definition userprofile{
+    relation owner : user
+    relation viewer : usergroup#member | usergroup#direct_member | usergroup#system_administrator
+    relation admin : usergroup#system_admin | usergroup#system_administrator
+
+    permission view = owner + viewer
+    permission update = owner + admin
+    permission delete = owner + admin
+    permission create = owner + admin
+
   }
 
-    /**
-    * For testing conditional scenarios
-    *  */
-    
-    caveat has_valid_ip(user_ip ipaddress, allowed_range string) {
+  definition logs{
+    relation manager : usergroup#security_administrator | usergroup#security_admin
+
+    permission view = manager
+    permission update = manager
+    permission delete = manager
+    permission create = manager
+  }
+
+  caveat has_valid_ip(user_ip ipaddress, allowed_range string) {
     user_ip.in_cidr(allowed_range)
   }
 
-    caveat is_weekend(today string){
+  caveat is_weekend(today string){
     today == 'saturday'
   }

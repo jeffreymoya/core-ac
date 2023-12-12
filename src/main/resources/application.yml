@@ -1,6 +1,8 @@
 # Shared properties across all profiles
 p8c:
   security:
-    principal-header: "X-Consumer-Custom-ID"
-
-
+    principal-header: "X-Authenticated-User"
+  route-check:
+    constants:
+      objectType: "route"
+      subjRefObjType: "user"

@@ -10,8 +10,6 @@ services:
     environment:
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:50051 -Xms256m -Xmx4G"
 
-    networks:
-      - pulse8-central-bridge
 
   pulse8-core-access-control:
     container_name: pulse8-core-access-control
@@ -21,8 +19,6 @@ services:
     ports:
       - "3010:3010"
       - "5010:5010"
-    networks:
-      - pulse8-central-bridge
     environment:
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5010 -Xms256m -Xmx4G"
       SPICEDB_HOST: spicedb
@@ -33,8 +29,6 @@ services:
     image: inanimate/echo-server:latest
     ports:
       - "3000:8080"
-    networks:
-      - pulse8-central-bridge
   kong:
     image: kong/kong-gateway:3.5
     container_name: pulse8-kong
@@ -43,12 +37,11 @@ services:
     environment:
       KONG_CLUSTER_CERT_KEY: /certs/cluster.key
       KONG_CLUSTER_CERT: /certs/cluster.crt
+      KONG_DECLARATIVE_CONFIG: "/opt/kong/kong.yaml"
+      KONG_LUA_PACKAGE_PATH: /opt/kong/plugins/checkpermission/?.lua;;
+      KONG_PLUGINS: bundled,checkpermission
     volumes:
       - ./certs:/certs
+      - ./config:/opt/kong
     ports:
       - 8000:8000
-    networks:
-      - pulse8-central-bridge
-networks:
-  pulse8-central-bridge:
-    name: pulse8-central-bridge

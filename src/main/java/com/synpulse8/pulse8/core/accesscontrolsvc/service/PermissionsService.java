@@ -5,6 +5,7 @@ import com.authzed.api.v1.PermissionService.CheckPermissionResponse;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeResponse;
 import com.authzed.api.v1.PermissionService.ReadRelationshipsRequest;
 import com.authzed.api.v1.PermissionService.ReadRelationshipsResponse;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckRoutePermissionDto;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
@@ -22,6 +23,8 @@ public interface PermissionsService {
     CompletableFuture<DeleteRelationshipsResponse> deleteRelationships(DeleteRelationshipsRequest request);
 
     CompletableFuture<CheckPermissionResponse> checkPermissions(CheckPermissionRequest request);
+
+    CompletableFuture<CheckPermissionResponse> checkRoute(CheckRoutePermissionDto request);
 
     CompletableFuture<ExpandPermissionTreeResponse> expandPermissions(ExpandPermissionTreeRequest request);
 
