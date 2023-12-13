@@ -1,19 +1,9 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
 import com.authzed.api.v1.PermissionService.CheckPermissionResponse;
-import com.authzed.api.v1.PermissionService.DeleteRelationshipsRequest;
-import com.authzed.api.v1.PermissionService.DeleteRelationshipsResponse;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeRequest;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeResponse;
-import com.authzed.api.v1.PermissionService.ReadRelationshipsRequest;
-import com.authzed.api.v1.PermissionService.ReadRelationshipsResponse;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckPermissionRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckRoutePermissionDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupResourcesRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupResourcesResponseDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupSubjectsRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.LookupSubjectsResponseDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.ApiError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
@@ -36,14 +26,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -88,23 +76,23 @@ public class PermissionsController {
     @PostMapping("/relationships/read")
     @Operation(description = "Read Relationships", summary = "Endpoint to read relationships.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully read relationships", content = @Content(schema = @Schema(implementation = ReadRelationshipsResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Successfully read relationships", content = @Content(schema = @Schema(implementation = ReadRelationshipResponseDto.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to read relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    public CompletableFuture<ResponseEntity<Iterator<ReadRelationshipsResponse>>> readRelationships(@RequestBody ReadRelationshipsRequest requestBody) {
-        return permissionsService.readRelationships(requestBody)
-                .thenApply(ResponseEntity::ok);
+    public CompletableFuture<ResponseEntity<List<ReadRelationshipResponseDto>>> readRelationships(@RequestBody ReadRelationshipRequestDto requestBody) {
+        return permissionsService.readRelationships(requestBody.toReadRelationshipsRequest())
+                .thenApply(x -> ResponseEntity.ok(ReadRelationshipResponseDto.fromList(x)));
     }
 
     @PostMapping("/relationships/delete")
     @Operation(description = "Delete Relationships", summary = "Endpoint to delete relationships.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully deleted relationships", content = @Content(schema = @Schema(implementation = DeleteRelationshipsResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Successfully deleted relationships", content = @Content(schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to delete relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    public CompletableFuture<ResponseEntity<DeleteRelationshipsResponse>> deleteRelationships(@RequestBody DeleteRelationshipsRequest requestBody) {
-        return permissionsService.deleteRelationships(requestBody)
-                .thenApply(ResponseEntity::ok);
+    public CompletableFuture<ResponseEntity<String>> deleteRelationships(@RequestBody DeleteRelationshipRequestDto requestBody) {
+        return permissionsService.deleteRelationships(requestBody.toDeleteRelationshipsRequest())
+                .thenApply(x -> ResponseEntity.ok(x.getDeletedAt().getToken()));
     }
 
     @PostMapping("/permissions/check")
