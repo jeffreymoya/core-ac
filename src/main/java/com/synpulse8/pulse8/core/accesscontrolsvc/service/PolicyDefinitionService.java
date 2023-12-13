@@ -1,7 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.service;
 
 import com.authzed.api.v1.SchemaServiceOuterClass;
-import com.synpulse8.pulse8.core.accesscontrolsvc.converter.PolicyConverter;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyMetaData;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
@@ -9,7 +8,6 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.repository.PolicyDefinitionRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
