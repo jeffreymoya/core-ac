@@ -44,6 +44,7 @@
         <testcontainers-junit-jupiter.version>1.18.3</testcontainers-junit-jupiter.version>
         <springdoc-openapi-starter.version>2.2.0</springdoc-openapi-starter.version>
         <springdoc-openapi-maven-plugin.version>1.1</springdoc-openapi-maven-plugin.version>
+        <spring-boot-starter-data-mongodb.version>3.2.0</spring-boot-starter-data-mongodb.version>
     </properties>
       
 
@@ -190,6 +191,12 @@
             <artifactId>springdoc-openapi-starter-common</artifactId>
             <version>${springdoc-openapi-starter.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+            <version>${spring-boot-starter-data-mongodb.version}</version>
+        </dependency>
+
 
     </dependencies>
     <dependencyManagement>

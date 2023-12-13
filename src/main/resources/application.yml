@@ -6,3 +6,8 @@ p8c:
     constants:
       objectType: "route"
       subjRefObjType: "user"
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/p8c-core-access-control

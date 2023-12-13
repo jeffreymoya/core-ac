@@ -9,8 +9,6 @@ services:
     command: serve --grpc-preshared-key "test_key"
     environment:
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:50051 -Xms256m -Xmx4G"
-
-
   pulse8-core-access-control:
     container_name: pulse8-core-access-control
     image: pulse8-core-access-control:latest
@@ -45,3 +43,10 @@ services:
       - ./config:/opt/kong
     ports:
       - 8000:8000
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./local/data/db:/data/db
