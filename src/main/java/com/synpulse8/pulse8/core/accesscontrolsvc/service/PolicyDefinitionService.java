@@ -2,6 +2,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.service;
 
 import com.authzed.api.v1.SchemaServiceOuterClass;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyMetaData;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.repository.PolicyDefinitionRepository;
@@ -31,15 +32,19 @@ public class PolicyDefinitionService {
     public CompletableFuture<PolicyMetaData> save(PolicyDefinitionDto policyDefinitionDto) {
         String definition = policyDefinitionDto.toDefinition();
 
+        if (policyDefinitionRepository.findByName(policyDefinitionDto.getName()).isPresent()) {
+            return CompletableFuture.failedFuture(new P8CException("Policy with the same name already exists: " + policyDefinitionDto.getName()));
+        }
+
         CompletableFuture<String> schemaFuture = fetchSchemaText();
 
-        return schemaFuture.thenApply(schemaText -> {
+        return schemaFuture.thenCompose(schemaText -> {
             SchemaServiceOuterClass.WriteSchemaRequest requestBody = SchemaServiceOuterClass.WriteSchemaRequest
                     .newBuilder()
-                    .setSchema(schemaText + "\\n" + definition)
+                    .setSchema(schemaText + "\n" + definition)
                     .build();
-            schemaService.writeSchema(requestBody);
-            return policyDefinitionRepository.save(policyDefinitionDto.toMetaData());
+            return schemaService.writeSchema(requestBody)
+                    .thenApply(v -> policyDefinitionRepository.save(policyDefinitionDto.toMetaData()));
         });
     }
 
@@ -58,17 +63,16 @@ public class PolicyDefinitionService {
                     .map(rolesAndPermissions -> {
                         PolicyDefinitionDto.PolicyDefinitionDtoBuilder builder = PolicyDefinitionDto.builder();
                         PolicyMetaData metadata = metaDataMap.get(rolesAndPermissions.getName());
+                        builder.name(rolesAndPermissions.getName())
+                                .roles(rolesAndPermissions.getRoles())
+                                .permissions(rolesAndPermissions.getPermissions());
                         if(metadata != null) {
                             builder
                                     .name(metadata.getName())
-                                    .type(metadata.getType())
                                     .description(metadata.getDescription())
                                     .attributes(metadata.getAttributes());
                         }
-                        return builder
-                                .roles(rolesAndPermissions.getRoles())
-                                .permissions(rolesAndPermissions.getPermissions())
-                                .build();
+                        return builder.build();
                     })
                     .collect(Collectors.toList());
         });
@@ -79,12 +83,11 @@ public class PolicyDefinitionService {
                 .newBuilder()
                 .build();
 
-        CompletableFuture<String> schemaFuture = schemaService.readSchema(requestBody)
+        return schemaService.readSchema(requestBody)
                 .thenApply(SchemaServiceOuterClass.ReadSchemaResponse::getSchemaText);
-        return schemaFuture;
     }
 
-    public PolicyMetaData get(String policyName) {
+    public Optional<PolicyMetaData> get(String policyName) {
         return Optional.ofNullable(policyDefinitionRepository.findByName(policyName))
                 .orElseThrow(() -> new RuntimeException("Policy not found in MongoDB: " + policyName));
     }

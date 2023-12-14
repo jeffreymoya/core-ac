@@ -15,8 +15,6 @@ import java.util.Map;
 public class PolicyDefinitionDto {
     @NotBlank(message = "Policy name is mandatory")
     private String name;
-    @NotBlank(message = "Policy type is mandatory")
-    private String type;
     @NotBlank(message = "Policy description is mandatory")
     private String description;
     @NotEmpty(message = "Policy roles is mandatory")
@@ -27,8 +25,6 @@ public class PolicyDefinitionDto {
     public String toDefinition() {
         StringBuilder definition = new StringBuilder();
         definition.append("definition ")
-                .append(this.getType())
-                .append(":")
                 .append(this.getName())
                 .append(" {\n");
 
@@ -56,7 +52,6 @@ public class PolicyDefinitionDto {
     public PolicyMetaData toMetaData() {
         return PolicyMetaData.builder()
                 .name(this.getName())
-                .type(this.getType())
                 .description(this.getDescription())
                 .attributes(this.getAttributes())
                 .build();
