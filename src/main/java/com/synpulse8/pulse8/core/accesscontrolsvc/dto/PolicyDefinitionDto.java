@@ -29,7 +29,7 @@ public class PolicyDefinitionDto {
                 .append(" {\n");
 
         for (PolicyRolesAndPermissions.Role role : this.getRoles()) {
-            definition.append("  relation ")
+            definition.append("\trelation ")
                     .append(role.getName())
                     .append(" : ")
                     .append(String.join(" | ", role.getSubjects()))
@@ -37,7 +37,7 @@ public class PolicyDefinitionDto {
         }
 
         for (PolicyRolesAndPermissions.Permission permission : this.getPermissions()) {
-            definition.append("  permission ")
+            definition.append("\tpermission ")
                     .append(permission.getName())
                     .append(" = ")
                     //TODO: support other operators in permission aside from "+"

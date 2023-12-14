@@ -28,15 +28,11 @@ public class LookupResourcesRequestDto extends PermissionRequestDto {
         Core.SubjectReference subject = subjectBuilder.build();
 
         return PermissionService.LookupResourcesRequest.newBuilder()
-                .setConsistency(
-                        PermissionService.Consistency.newBuilder()
-                                .setMinimizeLatency(true)
-                                .build())
+                .setConsistency(buildConsistency())
                 .setResourceObjectType(resourceObjectType)
                 .setSubject(subject)
                 .setPermission(permission)
                 .build();
-
     }
 
     @Override

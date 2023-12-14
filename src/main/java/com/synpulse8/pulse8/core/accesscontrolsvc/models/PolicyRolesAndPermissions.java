@@ -43,17 +43,9 @@ public class PolicyRolesAndPermissions {
         Matcher matcher = PATTERN.matcher(definition);
 
         String name = "";
-        String type = "";
         while (matcher.find()) {
             if (matcher.group(1) != null) {
-                String fullMatch = matcher.group(2);
-                int colonIndex = fullMatch.indexOf(":");
-                if (colonIndex != -1) {
-                    type = fullMatch.substring(0, colonIndex).trim();
-                    name = fullMatch.substring(colonIndex + 1).trim();
-                } else {
-                    name = fullMatch;
-                }
+                name = matcher.group(2);
             } else if (matcher.group(3) != null) {
                 String roleName = matcher.group(4);
                 String subjectsString = matcher.group(5);
