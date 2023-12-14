@@ -19,5 +19,5 @@ public class PolicyMetaData implements PolicyMetaDataBase {
     @Indexed(unique = true)
     private String name;
     private String description;
-    private Map<String, String> attributes;
+    private Map<String, Object> attributes;
 }

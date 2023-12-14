@@ -91,4 +91,46 @@ public class PolicyDefinitionService {
         return Optional.ofNullable(policyDefinitionRepository.findByName(policyName))
                 .orElseThrow(() -> new RuntimeException("Policy not found in MongoDB: " + policyName));
     }
+
+    public void updateAttributeDefinition(String policyName, Map<String, Object> attributes){
+        Optional<PolicyMetaData> policyMetaData = get(policyName);
+
+        if(policyMetaData.isEmpty()){
+            throw new RuntimeException("Policy not found in MongoDB: " + policyName);
+        }
+
+        attributes.entrySet().stream()
+            .forEach(entry -> {
+                policyMetaData.ifPresent(
+                    policy -> {
+                        policy.getAttributes().put(entry.getKey(), entry.getValue());
+                    }
+                );
+            });
+
+        policyMetaData.ifPresent(
+            policy -> {
+                policyDefinitionRepository.save(policy);
+            }
+        );
+    }
+
+    public CompletableFuture<Map<String,Object>> viewAttributeDefinitions(String policyName){
+        Optional<PolicyMetaData> policyMetaData = get(policyName);
+
+        if(policyMetaData == null){
+            throw new RuntimeException("Policy not found in MongoDB: " + policyName);
+        }
+
+        CompletableFuture<Map<String, Object>> attributesMap = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+             policyMetaData.ifPresent( policy -> {
+                 Map<String, Object> attributes = policy.getAttributes();
+                 attributesMap.complete(attributes);
+             });
+        });
+
+        return attributesMap;
+    }
 }

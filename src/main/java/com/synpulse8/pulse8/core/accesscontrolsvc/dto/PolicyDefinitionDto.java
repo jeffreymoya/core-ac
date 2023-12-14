@@ -21,7 +21,7 @@ public class PolicyDefinitionDto {
     private List<PolicyRolesAndPermissions.Role> roles;
     @NotEmpty(message = "Policy permissions is mandatory")
     private List<PolicyRolesAndPermissions.Permission> permissions;
-    private Map<String, String> attributes;
+    private Map<String, Object> attributes;
     public String toDefinition() {
         StringBuilder definition = new StringBuilder();
         definition.append("definition ")
