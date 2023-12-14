@@ -95,34 +95,27 @@ public class PolicyDefinitionService {
     public void updateAttributeDefinition(String policyName, Map<String, Object> attributes){
         Optional<PolicyMetaData> policyMetaData = get(policyName);
 
-        if(policyMetaData.isEmpty()){
+        if (policyMetaData.isEmpty()) {
             throw new RuntimeException("Policy not found in MongoDB: " + policyName);
         }
 
-        attributes.entrySet().stream()
+        policyMetaData.ifPresent( policy -> {
+            attributes.entrySet().stream()
             .forEach(entry -> {
-                policyMetaData.ifPresent(
-                    policy -> {
-                        policy.getAttributes().put(entry.getKey(), entry.getValue());
-                    }
-                );
-            });
+                policy.getAttributes().put(entry.getKey(), entry.getValue());
+                });
+            policyDefinitionRepository.save(policy);
+        });
 
-        policyMetaData.ifPresent(
-            policy -> {
-                policyDefinitionRepository.save(policy);
-            }
-        );
     }
 
     public CompletableFuture<Map<String,Object>> viewAttributeDefinitions(String policyName){
         Optional<PolicyMetaData> policyMetaData = get(policyName);
+        CompletableFuture<Map<String, Object>> attributesMap = new CompletableFuture<>();
 
-        if(policyMetaData == null){
+        if (policyMetaData.isEmpty()) {
             throw new RuntimeException("Policy not found in MongoDB: " + policyName);
         }
-
-        CompletableFuture<Map<String, Object>> attributesMap = new CompletableFuture<>();
 
         CompletableFuture.runAsync(() -> {
              policyMetaData.ifPresent( policy -> {
