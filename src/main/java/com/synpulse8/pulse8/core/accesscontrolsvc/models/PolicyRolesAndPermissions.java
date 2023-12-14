@@ -19,7 +19,6 @@ public class PolicyRolesAndPermissions {
     private List<Role> roles;
     private List<Permission> permissions;
     private String name;
-    private String type;
 
     @Getter
     @Builder
@@ -73,7 +72,7 @@ public class PolicyRolesAndPermissions {
             }
         }
 
-        return builder().roles(roles).permissions(permissions).name(name).type(type).build();
+        return builder().roles(roles).permissions(permissions).name(name).build();
     }
 
     public static List<PolicyRolesAndPermissions> fromList(String definitions) {
