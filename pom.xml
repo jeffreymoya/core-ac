@@ -40,10 +40,12 @@
             **/accesscontrolsvc/controller/**.java,
             **/accesscontrolsvc/repository/**.java
         </sonar.exclusions>
-        <testcontainers.version>1.18.0</testcontainers.version>
-        <testcontainers-junit-jupiter.version>1.18.3</testcontainers-junit-jupiter.version>
         <springdoc-openapi-starter.version>2.2.0</springdoc-openapi-starter.version>
         <springdoc-openapi-maven-plugin.version>1.1</springdoc-openapi-maven-plugin.version>
+        <spring-boot-starter-data-mongodb.version>3.2.0</spring-boot-starter-data-mongodb.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
+        <testcontainers-junit-jupiter.version>1.19.3</testcontainers-junit-jupiter.version>
+        <mongodb-testcontainers.version>1.19.3</mongodb-testcontainers.version>
     </properties>
       
 
@@ -171,6 +173,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <version>${mongodb-testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
             <version>${grpc-netty-shaded.version}</version>
@@ -190,6 +198,12 @@
             <artifactId>springdoc-openapi-starter-common</artifactId>
             <version>${springdoc-openapi-starter.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+            <version>${spring-boot-starter-data-mongodb.version}</version>
+        </dependency>
+
 
     </dependencies>
     <dependencyManagement>

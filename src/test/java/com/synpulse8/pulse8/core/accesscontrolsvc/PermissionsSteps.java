@@ -6,8 +6,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckPermissionRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
 import io.cucumber.java.Before;
@@ -22,20 +24,21 @@ import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasLength;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -51,7 +54,7 @@ public class PermissionsSteps {
 
     private Response response;
 
-    private JsonNode testInput;
+    private static JsonNode testInput;
 
     private SchemaService schemaService;
 
@@ -61,19 +64,19 @@ public class PermissionsSteps {
 
     private static boolean initialSetup = true;
 
-    private  static JsonNode schemaFile;
+    private static final AtomicReference<String> writeRelationshipToken = new AtomicReference<>();;
+
 
     static {
         try {
             ClassPathResource resource = new ClassPathResource("schema/schema_pbac_test_input.json");
             File file = resource.getFile();
-            schemaFile = new ObjectMapper().readTree(file);
+            testInput = new ObjectMapper().readTree(file);
         } catch (IOException e) {
             LOGGER.error("Error while reading schema file", e);
         }
     }
 
-    @Autowired
     public PermissionsSteps(SchemaService schemaService, PermissionsService permissionsService, ObjectMapper objectMapper) {
         this.schemaService = schemaService;
         this.permissionsService = permissionsService;
@@ -81,26 +84,25 @@ public class PermissionsSteps {
     }
 
     @Before
-    public void setUp() throws IOException, InterruptedException {
+    public void setUp() throws InterruptedException {
         if(initialSetup) {
             RestAssured.baseURI = "http://localhost";
             RestAssured.port = port;
             RestAssured.defaultParser = Parser.JSON;
-            ClassPathResource resource = new ClassPathResource("schema/schema_pbac_test_input.json");
-            File file = resource.getFile();
-            testInput = objectMapper.readTree(file);
             JsonNode testNode = testInput.path("writeSchema").path("schema");
-            Map schema = new HashMap();
-            schema.put("schema", testNode);
-            WriteSchemaRequestDto requestBody = objectMapper.convertValue(schema, WriteSchemaRequestDto.class);
-            SchemaServiceOuterClass.WriteSchemaResponse join = schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
+            WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
+            schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
             WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("createRelationships"), WriteRelationshipRequestDto.class);
-            permissionsService.writeRelationships(request.toWriteRelationshipRequest()).join();
-            // fix intermittent issue where api fails due to schema/relationships not being ready
-            Thread.sleep(2000);
+            permissionsService.writeRelationships(request.toWriteRelationshipRequest())
+                    .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
+            long timeoutMillis = 10000; // 10 seconds
+            long pollingIntervalMillis = 1000; // 1 second
+            long startTime = System.currentTimeMillis();
+            do {
+                LOGGER.debug("Waiting for write relationship to complete");
+                Thread.sleep(pollingIntervalMillis);
+            } while (writeRelationshipToken.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
             initialSetup = false;
-        } else {
-            testInput = schemaFile;
         }
     }
     @Given("the API is available")
@@ -166,6 +168,9 @@ public class PermissionsSteps {
                 .path(type)
                 .path("request");
         Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
+        requestBody.put("atExactSnapshot", writeRelationshipToken.get());
+        requestBody.put("fullyConsistent", true);
+
         final RequestSpecification builder = given()
                 .contentType("application/json")
                 .body(objectMapper.writeValueAsString(requestBody));
@@ -188,5 +193,63 @@ public class PermissionsSteps {
         assertEquals(expectedNode.get("permission").asInt(), receivedNode.get("permission").asInt());
         assertEquals(expectedNode.get(id).asText(), receivedNode.get(id).asText());
 
+    }
+
+    @When("a user saves a policy definition with valid data")
+    public void aUserSavesAPolicyDefinitionWithValidData() throws JsonProcessingException {
+        JsonNode policy = testInput.path("policy");
+        PolicyDefinitionDto dto = objectMapper.convertValue(policy, PolicyDefinitionDto.class);
+
+        RequestSpecification builder = given()
+                .contentType("application/json")
+                .body(objectMapper.writeValueAsString(dto));
+
+        response = builder
+                .header(principalHeader, "test-user")
+                .when()
+                .post("/v1/policy");
+    }
+
+    @Then("the response should contain the policy ID")
+    public void theResponseShouldContainThePolicyID() {
+        // written_at length is 24
+        response.then().assertThat().body(hasLength(24));
+    }
+
+    @When("a user gets all policy definitions")
+    public void aUserGetsAllPolicyDefinitions() {
+        response = given()
+                .header(principalHeader, "test-user")
+                .when()
+                .get("/v1/policies");
+    }
+
+    @Then("the response should contain a list of policy definitions")
+    public void theResponseShouldContainAListOfPolicyDefinitions() {
+        JsonNode policy = testInput.path("policy");
+        PolicyDefinitionDto dto = objectMapper.convertValue(policy, PolicyDefinitionDto.class);
+        response.thenReturn().body().jsonPath().getList("", PolicyDefinitionDto.class).forEach(policyDefinitionDto -> {
+            if(policyDefinitionDto.getName().equals(dto.getName())) {
+                assertEquals(dto.getDescription(), policyDefinitionDto.getDescription());
+                assertEquals(dto.getPermissions().size(), policyDefinitionDto.getPermissions().size());
+                for (int i = 0; i < dto.getPermissions().size(); i++) {
+                    PolicyRolesAndPermissions.Permission expected = dto.getPermissions().get(i);
+                    PolicyRolesAndPermissions.Permission actual = policyDefinitionDto.getPermissions().get(i);
+                    assertEquals(expected.getName(), actual.getName());
+                    expected.getRolesOr().sort(String::compareTo);
+                    actual.getRolesOr().sort(String::compareTo);
+                    assertEquals(expected.getRolesOr(), actual.getRolesOr());
+                }
+                for (int i = 0; i < dto.getRoles().size(); i++) {
+                    PolicyRolesAndPermissions.Role expected = dto.getRoles().get(i);
+                    PolicyRolesAndPermissions.Role actual = policyDefinitionDto.getRoles().get(i);
+                    assertEquals(expected.getName(), actual.getName());
+                    expected.getSubjects().sort(String::compareTo);
+                    actual.getSubjects().sort(String::compareTo);
+                    assertEquals(expected.getSubjects(), actual.getSubjects());
+                }
+                dto.getAttributes().forEach((key, value) -> assertEquals(value, policyDefinitionDto.getAttributes().get(key)));
+            }
+        });
     }
 }

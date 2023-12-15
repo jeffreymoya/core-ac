@@ -132,5 +132,82 @@
         }
       ]
     }
+  },
+  "policy": {
+    "name": "policytest",
+    "description": "this is a test insert",
+    "roles": [
+      {
+        "name": "group",
+        "subjects": [
+          "usergroup"
+        ]
+      },
+      {
+        "name": "policy_manager",
+        "subjects": [
+          "user",
+          "usergroup#security_admin",
+          "usergroup#security_administrator"
+        ]
+      },
+      {
+        "name": "policy_member",
+        "subjects": [
+          "user",
+          "usergroup#member",
+          "usergroup#system_administrator",
+          "usergroup#system_admin",
+          "usergroup#direct_member"
+        ]
+      },
+      {
+        "name": "policy_creator",
+        "subjects": [
+          "user",
+          "usergroup#security_admin",
+          "usergroup#security_administrator"
+        ]
+      }
+    ],
+    "permissions": [
+      {
+        "name": "create",
+        "rolesOr": [
+          "policy_creator",
+          "policy_manager"
+        ],
+        "rolesAnd": null
+      },
+      {
+        "name": "view",
+        "rolesOr": [
+          "policy_creator",
+          "policy_manager",
+          "policy_member"
+        ],
+        "rolesAnd": null
+      },
+      {
+        "name": "update",
+        "rolesOr": [
+          "policy_creator",
+          "policy_manager"
+        ],
+        "rolesAnd": null
+      },
+      {
+        "name": "delete",
+        "rolesOr": [
+          "group->security_admin"
+        ],
+        "rolesAnd": null
+      }
+    ],
+    "attributes": {
+      "sensitivity": "confidential",
+      "classification": "legal",
+      "access": "local"
+    }
   }
 }

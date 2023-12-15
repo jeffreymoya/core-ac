@@ -19,10 +19,7 @@ public class LookupSubjectsRequestDto extends PermissionRequestDto {
 
     public PermissionService.LookupSubjectsRequest toLookupSubjectsRequest() {
         PermissionService.LookupSubjectsRequest.Builder subjectBuilder = PermissionService.LookupSubjectsRequest.newBuilder()
-                .setConsistency(
-                        PermissionService.Consistency.newBuilder()
-                                .setMinimizeLatency(true)
-                                .build())
+                .setConsistency(buildConsistency())
                 .setResource(
                         Core.ObjectReference.newBuilder()
                                 .setObjectType(objectType)
@@ -36,7 +33,6 @@ public class LookupSubjectsRequestDto extends PermissionRequestDto {
         return subjectBuilder.setPermission(permission)
                     .setSubjectObjectType(subjectObjectType)
                     .build();
-
     }
 
     @Override
