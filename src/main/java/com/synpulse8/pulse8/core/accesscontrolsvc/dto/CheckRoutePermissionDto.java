@@ -1,7 +1,9 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
-import com.authzed.api.v1.Core;
-import com.authzed.api.v1.PermissionService;
+import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -9,34 +11,12 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class CheckRoutePermissionDto extends PermissionRequestDto {
+public class CheckRoutePermissionDto {
+    @Schema(description = "The route to check permission for", example = "/v1/clients/1234")
+    @NotBlank(message = "Route cannot be blank")
     private String route;
-    private String httpMethod;
-    public PermissionService.CheckPermissionRequest toCheckPermissionRequest() {
-        Core.SubjectReference.Builder subjectBuilder = Core.SubjectReference.newBuilder()
-                .setObject(
-                        Core.ObjectReference.newBuilder()
-                                .setObjectType(subjRefObjType)
-                                .setObjectId(subjRefObjId)
-                                .build());
-        if (subjRelation != null && !subjRelation.isEmpty()){
-            subjectBuilder.setOptionalRelation(subjRelation);
-        }
-        Core.SubjectReference subject = subjectBuilder.build();
+    @Schema(description = "The HTTP method to check permission for", example = "GET")
+    @NotNull(message = "Method cannot be null")
+    private HttpMethodPermission method;
 
-        return PermissionService.CheckPermissionRequest.newBuilder()
-                .setConsistency(
-                        PermissionService.Consistency.newBuilder()
-                                .setMinimizeLatency(true)
-                                .build())
-                .setResource(
-                        Core.ObjectReference.newBuilder()
-                                .setObjectType(objectType)
-                                .setObjectId(objectId)
-                                .build())
-                .setSubject(subject)
-                .setPermission(permission)
-                .build();
-
-    }
 }

@@ -17,12 +17,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-public class SpiceDBExceptionHandler {
+public class P8CExceptionHandler {
     @ExceptionHandler({StatusRuntimeException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Object> statusRuntimeException(StatusRuntimeException ex, HttpServletRequest request) throws IOException {
-        List<String> errorMessages = Arrays.asList(ex.getMessage().split(":"));
-        String errorMessage = errorMessages.get(0);
+    public ResponseEntity<Object> statusRuntimeException(StatusRuntimeException ex) {
+        List<String> errorMessages = Arrays.asList(ex.getMessage().split(":", 2));
+        String errorMessage = errorMessages.get(1).trim();
 
         return new ResponseEntity<>(new P8CError(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -39,5 +39,11 @@ public class SpiceDBExceptionHandler {
                 .map(ObjectError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
         return new ResponseEntity<>(new P8CError(error), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(P8CException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleP8cExceptions(P8CException ex) {
+        return new ResponseEntity<>(new P8CError(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }
