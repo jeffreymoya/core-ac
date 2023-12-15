@@ -22,7 +22,7 @@ public class P8CExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> statusRuntimeException(StatusRuntimeException ex) {
         List<String> errorMessages = Arrays.asList(ex.getMessage().split(":", 2));
-        String errorMessage = errorMessages.get(1);
+        String errorMessage = errorMessages.get(1).trim();
 
         return new ResponseEntity<>(new P8CError(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }

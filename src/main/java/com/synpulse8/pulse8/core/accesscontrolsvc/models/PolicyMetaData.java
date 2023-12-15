@@ -1,6 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.models;
 
-import jakarta.validation.constraints.NotBlank;
+import com.synpulse8.pulse8.core.accesscontrolsvc.enums.Access;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,4 +20,5 @@ public class PolicyMetaData implements PolicyMetaDataBase {
     private String name;
     private String description;
     private Map<String, Object> attributes;
+    private Access access;
 }

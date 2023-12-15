@@ -20,6 +20,8 @@ public class PolicyRolesAndPermissions {
     private List<Permission> permissions;
     private String name;
 
+    public static final String CAVEAT_ATTRIBUTES_MATCH = " with attributes_match";
+
     @Getter
     @Builder
     public static class Role {
@@ -43,23 +45,20 @@ public class PolicyRolesAndPermissions {
         Matcher matcher = PATTERN.matcher(definition);
 
         String name = "";
-        String type = "";
         while (matcher.find()) {
             if (matcher.group(1) != null) {
-                String fullMatch = matcher.group(2);
-                int colonIndex = fullMatch.indexOf(":");
-                if (colonIndex != -1) {
-                    type = fullMatch.substring(0, colonIndex).trim();
-                    name = fullMatch.substring(colonIndex + 1).trim();
-                } else {
-                    name = fullMatch;
-                }
+                name = matcher.group(2);
             } else if (matcher.group(3) != null) {
                 String roleName = matcher.group(4);
                 String subjectsString = matcher.group(5);
                 roles.add(Role.builder()
                         .name(roleName)
-                        .subjects(Arrays.stream(subjectsString.split(" \\| ")).map(String::trim).collect(Collectors.toList()))
+                        .subjects(Arrays.stream(
+                            subjectsString
+                                .replace(CAVEAT_ATTRIBUTES_MATCH, "")
+                                .split(" \\| "))
+                                .map(String::trim).collect(Collectors.toList())
+                        )
                         .build());
             } else if (matcher.group(7) != null) {
                 String permissionName = matcher.group(8);

@@ -1,11 +1,20 @@
 logging:
     level:
-      root: error
+      com:
+        synpulse8:
+          pulse8:
+            core:
+              accesscontrolsvc: debug
+      root: debug
       org:
         apache:
           kafka: off
+        web: debug
 
 spring:
   main:
     allow-bean-definition-overriding: true
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/p8c-core-access-control
 

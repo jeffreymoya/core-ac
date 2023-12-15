@@ -70,7 +70,8 @@ public class PolicyDefinitionService {
                             builder
                                     .name(metadata.getName())
                                     .description(metadata.getDescription())
-                                    .attributes(metadata.getAttributes());
+                                    .attributes(metadata.getAttributes())
+                                    .access(metadata.getAccess());
                         }
                         return builder.build();
                     })
