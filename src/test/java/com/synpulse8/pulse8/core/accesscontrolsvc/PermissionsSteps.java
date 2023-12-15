@@ -1,6 +1,5 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
-import com.authzed.api.v1.SchemaServiceOuterClass;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,6 +63,8 @@ public class PermissionsSteps {
 
     private static final AtomicReference<String> writeRelationshipToken = new AtomicReference<>();;
 
+    private static final AtomicReference<String> deleteRelationshipToken = new AtomicReference<>();;
+
 
     static {
         try {
@@ -87,19 +88,13 @@ public class PermissionsSteps {
             RestAssured.baseURI = "http://localhost";
             RestAssured.port = port;
             RestAssured.defaultParser = Parser.JSON;
-            JsonNode testNode = testInput.path("writeSchema").path("schema");
+            JsonNode testNode = testInput.path("schema").path("write");
             WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
             schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
-            WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("createRelationships"), WriteRelationshipRequestDto.class);
+            WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("relationships").get("create").get("initial"), WriteRelationshipRequestDto.class);
             permissionsService.writeRelationships(request.toWriteRelationshipRequest())
                     .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
-            long timeoutMillis = 10000; // 10 seconds
-            long pollingIntervalMillis = 3000; // 3 second
-            long startTime = System.currentTimeMillis();
-            do {
-                LOGGER.debug("Waiting for write relationship to complete");
-                Thread.sleep(pollingIntervalMillis);
-            } while (writeRelationshipToken.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
+            sleep(writeRelationshipToken);
             initialSetup = false;
         }
     }
@@ -258,9 +253,9 @@ public class PermissionsSteps {
                 .path("update")
                 .path(relation);
         WriteRelationshipRequestDto request = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
-        permissionsService.writeRelationships(request.toWriteRelationshipRequest()).join();
-        // fix intermittent issue where api fails due to schema/relationships not being ready
-        Thread.sleep(2000);
+        permissionsService.writeRelationships(request.toWriteRelationshipRequest())
+                .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
+        sleep(writeRelationshipToken);
     }
 
     @When("a user reads {string} relationships with principal {string}")
@@ -283,9 +278,14 @@ public class PermissionsSteps {
         final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal);
         String path = "/v1/relationships/" + (option.equals("filter") ? "delete" : "write");
         response = builder.when().post(path);
+    }
 
-        // fix intermittent issue where api fails due to schema/relationships not being ready
-        Thread.sleep(2000);
+    @Then("the delete response code should be {int}")
+    public void theDeleteResponseCodeShouldBe(int statusCode) throws InterruptedException {
+        ValidatableResponse then = response.then();
+        then.statusCode(statusCode);
+        deleteRelationshipToken.set(response.getBody().asString());
+        sleep(deleteRelationshipToken);
     }
 
     @And("the response body should contain the {string} relationship list")
@@ -320,5 +320,15 @@ public class PermissionsSteps {
         }
 
         return builder;
+    }
+
+    private void sleep(AtomicReference<String> token) throws InterruptedException {
+        long timeoutMillis = 10000; // 10 seconds
+        long pollingIntervalMillis = 3000; // 3 second
+        long startTime = System.currentTimeMillis();
+        do {
+            LOGGER.debug("Waiting for write/delete relationship to complete");
+            Thread.sleep(pollingIntervalMillis);
+        } while (token.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
     }
 }
