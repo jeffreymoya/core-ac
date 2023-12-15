@@ -86,3 +86,7 @@
   caveat is_weekend(today string){
     today == 'saturday'
   }
+
+  caveat attributes_match(expected map<any>, provided map<any>) {
+    expected.isSubtreeOf(provided)
+  }

@@ -1,33 +1,29 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.enums;
 
-public enum HttpMethodPermission {
-    VIEW("GET", "view"),
-    UPDATE("PUT", "update"),
-    CREATE("POST", "create"),
-    DELETE("DELETE", "delete");
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
+import lombok.Getter;
 
-    private final String value;
+@Getter
+public enum HttpMethodPermission {
+    GET( "view"),
+    PUT( "update"),
+    POST( "create"),
+    DELETE( "delete");
+
     private final String permission;
 
-    HttpMethodPermission(String value, String permission) {
-        this.value = value;
+    HttpMethodPermission(String permission) {
         this.permission = permission;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    public String getPermission() {
-        return permission;
-    }
-
-    public static HttpMethodPermission fromValue(String value) {
-        for (HttpMethodPermission permission : HttpMethodPermission.values()) {
-            if (permission.getValue().equals(value)) {
-                return permission;
+    @JsonCreator
+    public static HttpMethodPermission fromString(String value) {
+        for (HttpMethodPermission method : HttpMethodPermission.values()) {
+            if (method.name().equalsIgnoreCase(value)) {
+                return method;
             }
         }
-        throw new IllegalArgumentException("Invalid HttpMethodPermission value: " + value);
+        throw new P8CException("Invalid method value: " + value);
     }
 }

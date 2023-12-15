@@ -249,6 +249,7 @@ public class PermissionsSteps {
                     assertEquals(expected.getSubjects(), actual.getSubjects());
                 }
                 dto.getAttributes().forEach((key, value) -> assertEquals(value, policyDefinitionDto.getAttributes().get(key)));
+                assertEquals(dto.getAccess(), policyDefinitionDto.getAccess());
             }
         });
     }
