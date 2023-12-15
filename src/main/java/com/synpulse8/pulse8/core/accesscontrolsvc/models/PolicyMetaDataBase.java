@@ -7,5 +7,5 @@ public interface PolicyMetaDataBase {
     String getId();
     String getName();
     String getDescription();
-    Map<String, String> getAttributes();
+    Map<String, Object> getAttributes();
 }
