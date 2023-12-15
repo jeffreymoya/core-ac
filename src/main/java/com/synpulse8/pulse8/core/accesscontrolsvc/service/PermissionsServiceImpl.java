@@ -43,11 +43,6 @@ public class PermissionsServiceImpl implements PermissionsService {
     }
 
     @Override
-    public CompletableFuture<CheckPermissionResponse> checkRoute(CheckRoutePermissionDto request) {
-        return runAsyncTask(() -> permissionsService.checkPermission(request.toCheckPermissionRequest()));
-    }
-
-    @Override
     public CompletableFuture<ExpandPermissionTreeResponse> expandPermissions(ExpandPermissionTreeRequest request) {
         return runAsyncTask(() -> permissionsService.expandPermissionTree(request));
     }

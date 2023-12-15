@@ -96,7 +96,7 @@ public class PermissionsSteps {
             permissionsService.writeRelationships(request.toWriteRelationshipRequest())
                     .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
             long timeoutMillis = 10000; // 10 seconds
-            long pollingIntervalMillis = 1000; // 1 second
+            long pollingIntervalMillis = 3000; // 3 second
             long startTime = System.currentTimeMillis();
             do {
                 LOGGER.debug("Waiting for write relationship to complete");
@@ -249,6 +249,7 @@ public class PermissionsSteps {
                     assertEquals(expected.getSubjects(), actual.getSubjects());
                 }
                 dto.getAttributes().forEach((key, value) -> assertEquals(value, policyDefinitionDto.getAttributes().get(key)));
+                assertEquals(dto.getAccess(), policyDefinitionDto.getAccess());
             }
         });
     }
