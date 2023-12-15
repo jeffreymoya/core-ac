@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckPermissionRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
@@ -29,6 +30,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,12 +91,13 @@ public class PermissionsSteps {
             ClassPathResource resource = new ClassPathResource("schema/schema_pbac_test_input.json");
             File file = resource.getFile();
             testInput = objectMapper.readTree(file);
-            JsonNode testNode = testInput.path("writeSchema").path("schema");
+            JsonNode testNode = testInput.path("schema").path("write");
             Map schema = new HashMap();
             schema.put("schema", testNode);
             WriteSchemaRequestDto requestBody = objectMapper.convertValue(schema, WriteSchemaRequestDto.class);
             SchemaServiceOuterClass.WriteSchemaResponse join = schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
-            WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("createRelationships"), WriteRelationshipRequestDto.class);
+            testNode = testInput.path("relationships").path("create").path("initial");
+            WriteRelationshipRequestDto request = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
             permissionsService.writeRelationships(request.toWriteRelationshipRequest()).join();
             // fix intermittent issue where api fails due to schema/relationships not being ready
             Thread.sleep(2000);
@@ -188,5 +191,75 @@ public class PermissionsSteps {
         assertEquals(expectedNode.get("permission").asInt(), receivedNode.get("permission").asInt());
         assertEquals(expectedNode.get(id).asText(), receivedNode.get(id).asText());
 
+    }
+
+    @And("the {string} relationships are written")
+    public void theRelationshipsAreWritten(String relation) throws InterruptedException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("update")
+                .path(relation);
+        WriteRelationshipRequestDto request = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
+        permissionsService.writeRelationships(request.toWriteRelationshipRequest()).join();
+        // fix intermittent issue where api fails due to schema/relationships not being ready
+        Thread.sleep(2000);
+    }
+
+    @When("a user reads {string} relationships with principal {string}")
+    public void aUserReadsRelationshipsWithPrincipal(String relation, String principal) throws JsonProcessingException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("view")
+                .path(relation)
+                .path("request");
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal);
+        response = builder.when().post("/v1/relationships/read");
+    }
+
+    @When("a user deletes {string} relationships by {string} with principal {string}")
+    public void aUserDeletesRelationshipsWithPrincipal(String relation, String option, String principal) throws JsonProcessingException, InterruptedException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("delete")
+                .path(relation)
+                .path(option);
+
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal);
+        String path = "/v1/relationships/" + (option.equals("filter") ? "delete" : "write");
+        response = builder.when().post(path);
+
+        // fix intermittent issue where api fails due to schema/relationships not being ready
+        Thread.sleep(2000);
+    }
+
+    @And("the response body should contain the {string} relationship list")
+    public void theResponseBodyShouldContainTheRelationshipList(String relation) {
+        JsonNode expectedNode = testInput.path("relationships")
+                .path("view")
+                .path(relation)
+                .path("response");
+        theResponseBodyShouldContainTheListSize(1);
+        List<Object> receivedResponse = response.getBody().jsonPath().getList("");
+        JsonNode receivedNode = objectMapper.convertValue(receivedResponse, JsonNode.class);
+        Field[] fields = ReadRelationshipResponseDto.class.getSuperclass().getDeclaredFields();
+        for (Field field : fields) {
+            String fieldName = field.getName();
+            assertEquals(expectedNode.get(0).get(fieldName), receivedNode.get(0).get(fieldName));
+        }
+    }
+
+    @And("the response body should contain the list size {int}")
+    public void theResponseBodyShouldContainTheListSize(int size) {
+        response.then().assertThat().body("size()", equalTo(size));
+    }
+
+    private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal) throws JsonProcessingException {
+        Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
+        final RequestSpecification builder = given()
+                .contentType("application/json")
+                .body(objectMapper.writeValueAsString(requestBody));
+
+        if(principal != null && !principal.isEmpty()) {
+            builder.header(principalHeader, principal);
+        }
+
+        return builder;
     }
 }
