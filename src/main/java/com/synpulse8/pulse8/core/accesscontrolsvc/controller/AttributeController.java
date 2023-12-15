@@ -2,6 +2,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.AttributeDefinitionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PolicyDefinitionService;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -30,12 +31,12 @@ public class AttributeController {
     }
 
     @RequestMapping(value = "/attribute", method = RequestMethod.POST)
-    public void addAttributeDefinition(@RequestBody AttributeDefinitionDto dto) {
+    public void addAttributeDefinition(@RequestBody AttributeDefinitionDto dto) throws P8CException {
         policyDefinitionService.updateAttributeDefinition(dto.getPolicyName(), dto.getAttributes());
     }
 
     @RequestMapping(value = "/attributes", method = RequestMethod.GET)
-    public CompletableFuture<Map<String,Object>> getAttributeDefinitions(@RequestParam(name="policyName", required = false)String policyName) {
+    public CompletableFuture<Map<String,Object>> getAttributeDefinitions(@RequestParam(name="policyName", required = false)String policyName) throws P8CException {
         return policyDefinitionService.viewAttributeDefinitions(policyName);
     }
 }

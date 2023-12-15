@@ -92,11 +92,11 @@ public class PolicyDefinitionService {
                 .orElseThrow(() -> new RuntimeException("Policy not found in MongoDB: " + policyName));
     }
 
-    public void updateAttributeDefinition(String policyName, Map<String, Object> attributes){
+    public void updateAttributeDefinition(String policyName, Map<String, Object> attributes) throws P8CException {
         Optional<PolicyMetaData> policyMetaData = get(policyName);
 
         if (policyMetaData.isEmpty()) {
-            throw new RuntimeException("Policy not found in MongoDB: " + policyName);
+            throw new P8CException("Policy not found in MongoDB: " + policyName);
         }
 
         policyMetaData.ifPresent( policy -> {
@@ -109,12 +109,12 @@ public class PolicyDefinitionService {
 
     }
 
-    public CompletableFuture<Map<String,Object>> viewAttributeDefinitions(String policyName){
+    public CompletableFuture<Map<String,Object>> viewAttributeDefinitions(String policyName) throws P8CException {
         Optional<PolicyMetaData> policyMetaData = get(policyName);
         CompletableFuture<Map<String, Object>> attributesMap = new CompletableFuture<>();
 
         if (policyMetaData.isEmpty()) {
-            throw new RuntimeException("Policy not found in MongoDB: " + policyName);
+            throw new P8CException("Policy not found in MongoDB: " + policyName);
         }
 
         CompletableFuture.runAsync(() -> {
