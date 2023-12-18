@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
+import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -264,8 +266,9 @@ public class PermissionsSteps {
                 .path("view")
                 .path(relation)
                 .path("request");
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal);
-        response = builder.when().post("/v1/relationships/read");
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.GET);
+        String url = "/v1/relationships/read" + createRequestQueryString(testNode);
+        response = builder.when().get(url);
     }
 
     @When("a user deletes {string} relationships by {string} with principal {string}")
@@ -275,7 +278,7 @@ public class PermissionsSteps {
                 .path(relation)
                 .path(option);
 
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal);
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
         String path = "/v1/relationships/" + (option.equals("filter") ? "delete" : "write");
         response = builder.when().post(path);
     }
@@ -309,17 +312,28 @@ public class PermissionsSteps {
         response.then().assertThat().body("size()", equalTo(size));
     }
 
-    private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal) throws JsonProcessingException {
+    private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
         Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
-        final RequestSpecification builder = given()
+        final RequestSpecification builder = given();
+
+        if (!httpMethodPermission.equals(HttpMethodPermission.GET)) {
+            builder
                 .contentType("application/json")
                 .body(objectMapper.writeValueAsString(requestBody));
+        }
 
         if(principal != null && !principal.isEmpty()) {
             builder.header(principalHeader, principal);
         }
 
         return builder;
+    }
+
+    private String createRequestQueryString(JsonNode testNode) {
+        Map<String, Object> queryParams = objectMapper.convertValue(testNode, new TypeReference<>() {});
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
+        queryParams.forEach(builder::queryParam);
+        return builder.build().encode().toUriString();
     }
 
     private void sleep(AtomicReference<String> token) throws InterruptedException {

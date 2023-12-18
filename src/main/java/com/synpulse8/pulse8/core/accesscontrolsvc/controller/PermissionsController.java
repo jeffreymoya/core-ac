@@ -23,10 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -72,13 +69,13 @@ public class PermissionsController {
                 .thenApply(x -> ResponseEntity.ok(x.getWrittenAt().getToken()));
     }
 
-    @PostMapping("/relationships/read")
+    @GetMapping("/relationships/read")
     @Operation(description = "Read Relationships", summary = "Endpoint to read relationships.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully read relationships", content = @Content(schema = @Schema(implementation = ReadRelationshipResponseDto.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to read relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    public CompletableFuture<ResponseEntity<List<ReadRelationshipResponseDto>>> readRelationships(@RequestBody ReadRelationshipRequestDto requestBody) {
+    public CompletableFuture<ResponseEntity<List<ReadRelationshipResponseDto>>> readRelationships(@ModelAttribute ReadRelationshipRequestDto requestBody) {
         return permissionsService.readRelationships(requestBody.toReadRelationshipsRequest())
                 .thenApply(x -> ResponseEntity.ok(ReadRelationshipResponseDto.fromList(x)));
     }
