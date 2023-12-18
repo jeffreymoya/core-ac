@@ -59,6 +59,7 @@ Feature: Permissions API
     Examples:
       |option     | relation  |
       |filter     | customerC |
+      |list       | customerC |
 
   Scenario: Save Policy Definition
     Given the API is available

@@ -149,6 +149,19 @@
           "objectType": "policy/usermanagement",
           "subjRefObjType": "user",
           "subjRefObjId": "customerC"
+        },
+        "list": {
+          "updates": [
+            {
+              "operation": "OPERATION_DELETE",
+              "objectType": "policy/usermanagement",
+              "objectId": "userProfileC",
+              "relation": "owner",
+              "subjRefObjType": "user",
+              "subjRefObjId": "customerC",
+              "subjRelation": ""
+            }
+          ]
         }
       }
     }
