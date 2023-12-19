@@ -69,7 +69,7 @@ public class PermissionsController {
                 .thenApply(x -> ResponseEntity.ok(x.getWrittenAt().getToken()));
     }
 
-    @GetMapping("/relationships/read")
+    @GetMapping("/relationships")
     @Operation(description = "Read Relationships", summary = "Endpoint to read relationships.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully read relationships", content = @Content(schema = @Schema(implementation = ReadRelationshipResponseDto.class))),
@@ -80,15 +80,29 @@ public class PermissionsController {
                 .thenApply(x -> ResponseEntity.ok(ReadRelationshipResponseDto.fromList(x)));
     }
 
-    @DeleteMapping("/relationships/delete")
-    @Operation(description = "Delete Relationships", summary = "Endpoint to delete relationships.")
+    @DeleteMapping("/relationships")
+    @Operation(description = "Delete Relationships", summary = "Endpoint to delete relationships by filter.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully deleted relationships", content = @Content(schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to delete relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    public CompletableFuture<ResponseEntity<String>> deleteRelationships(@ModelAttribute DeleteRelationshipRequestDto requestBody) {
+    public CompletableFuture<ResponseEntity<String>> deleteRelationshipsByFilter(@ModelAttribute DeleteRelationshipRequestDto requestBody) {
         return permissionsService.deleteRelationships(requestBody.toDeleteRelationshipsRequest())
-                .thenApply(x -> ResponseEntity.ok(x.getDeletedAt().getToken()));
+                .thenApply(x -> ResponseEntity.noContent().build());
+    }
+
+    @DeleteMapping(value = {
+            "/relationships/{objectType}/{objectId}/{relation}/{subjRefObjType}/{subjRefObjId}",
+            "/relationships/{objectType}/{objectId}/{relation}/{subjRefObjType}/{subjRefObjId}/{subjRelation}"
+    })
+    @Operation(description = "Delete Relationship", summary = "Endpoint to delete relationship by path.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully deleted relationships", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to delete relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
+    })
+    public CompletableFuture<ResponseEntity<Void>> deleteRelationshipsByPath(@ModelAttribute DeleteRelationshipRequestDto requestBody) {
+        return permissionsService.deleteRelationships(requestBody.toDeleteRelationshipsRequest())
+                .thenApply(x -> ResponseEntity.noContent().build());
     }
 
     @PostMapping("/permissions/check")

@@ -267,7 +267,7 @@ public class PermissionsSteps {
                 .path(relation)
                 .path("request");
         final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.GET);
-        String url = "/v1/relationships/read" + createRequestQueryString(testNode);
+        String url = "/v1/relationships" + createRequestQueryString(testNode);
         response = builder.when().get(url);
     }
 
@@ -278,15 +278,15 @@ public class PermissionsSteps {
                 .path(relation)
                 .path(option);
 
-        final RequestSpecification builder;
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.DELETE);
+        String url = "/v1/relationships";
         if (option.equals("filter")) {
-            builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.DELETE);
-            String url = "/v1/relationships/delete" + createRequestQueryString(testNode);
-            response = builder.when().delete(url);
+            url += createRequestQueryString(testNode);
         } else {
-            builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
-            response = builder.when().post("/v1/relationships/write");
+            url += "/{objectType}/{objectId}/{relation}/{subjRefObjType}/{subjRefObjId}";
+            builder.pathParams(objectMapper.convertValue(testNode, new TypeReference<>() {}));
         }
+        response = builder.when().delete(url);
     }
 
     @Then("the delete response code should be {int}")
