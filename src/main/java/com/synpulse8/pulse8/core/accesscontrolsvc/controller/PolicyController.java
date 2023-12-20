@@ -12,10 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -43,5 +40,10 @@ public class PolicyController {
     @RequestMapping(value = "/policies", method = RequestMethod.GET)
     public CompletableFuture<List<PolicyDefinitionDto>> getAllPolicyDefinitions() {
         return policyDefinitionService.getAll();
+    }
+
+    @RequestMapping(value = "/policies/{resourceName}", method = RequestMethod.GET)
+    public CompletableFuture<Object> getPolicyDefinition(@PathVariable String resourceName) {
+        return policyDefinitionService.getPolicyDefinition(resourceName);
     }
 }

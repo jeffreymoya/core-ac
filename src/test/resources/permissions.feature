@@ -72,3 +72,10 @@ Feature: Permissions API
     When a user gets all policy definitions
     Then the response code should be 200
     And the response should contain a list of policy definitions
+
+  Scenario: Get Definition from Existing Policy
+    Given the API is available
+    When a user gets definition of policy with name "policytest"
+    Then the response code should be 200
+    And the response body should contain a map of policy definition
+

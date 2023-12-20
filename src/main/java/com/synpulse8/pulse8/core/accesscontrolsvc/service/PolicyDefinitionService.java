@@ -127,4 +127,34 @@ public class PolicyDefinitionService {
 
         return attributesMap;
     }
+
+    public CompletableFuture<Object> getPolicyDefinition(String resourceName) throws P8CException{
+
+        Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(resourceName);
+
+        if (policyMetaData.isEmpty()) {
+            throw new P8CException("Policy not found in MongoDB: " + resourceName);
+        }
+
+        CompletableFuture<String> schemaFuture = fetchSchemaText();
+        CompletableFuture<List<PolicyRolesAndPermissions>> rolesAndPermissionsFuture = schemaFuture.thenApply(PolicyRolesAndPermissions::fromList);
+        PolicyDefinitionDto.PolicyDefinitionDtoBuilder builder = PolicyDefinitionDto.builder();
+
+        return rolesAndPermissionsFuture.thenApply(rolesAndPermission -> {
+            Optional<PolicyRolesAndPermissions> policyRolesAndPermissions =  rolesAndPermission.stream()
+                    .filter(item -> item.getName().equals(resourceName))
+                    .findAny();
+            policyMetaData.ifPresent( policy -> {
+                builder.name(policy.getName())
+                        .description(policy.getDescription())
+                        .attributes(policy.getAttributes())
+                        .access(policy.getAccess());
+            });
+            policyRolesAndPermissions.ifPresent( item -> {
+                builder.roles(item.getRoles())
+                        .permissions(item.getPermissions());
+            });
+            return builder.build();
+        });
+    }
 }
