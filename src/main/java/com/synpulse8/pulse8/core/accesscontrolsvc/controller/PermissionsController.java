@@ -3,6 +3,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 import com.authzed.api.v1.PermissionService.CheckPermissionResponse;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeRequest;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.ApiError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
