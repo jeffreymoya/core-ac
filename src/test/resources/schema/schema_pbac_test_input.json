@@ -1,103 +1,182 @@
 {
-  "writeSchema": {
-    "schema": "// user represents a user\n  definition user {}\n\n  definition organization {\n    relation group: usergroup\n    relation administrator: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator\n    relation direct_member: user | usergroup#member | usergroup#direct_member | usergroup#system_administrator | usergroup#security_administrator\n\n    permission admin = administrator\n    permission member = direct_member + administrator + group->member\n  }\n\n  definition usergroup {\n    relation system_administrator : user | usergroup#member | usergroup#system_administrator\n    relation security_administrator : user | usergroup#member | usergroup#security_administrator\n    relation direct_member: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator | usergroup#direct_member\n\n    permission system_admin = system_administrator\n    permission security_admin = security_administrator\n    permission member = direct_member\n  }\n\n  // policy represents a policy\n  definition policy{\n    relation group : usergroup\n    relation policy_manager : user | usergroup#security_admin | usergroup#security_administrator\n    relation policy_member : user | usergroup#member | usergroup#system_administrator | usergroup#system_admin | usergroup#direct_member\n    relation policy_creator : user | usergroup#security_admin | usergroup#security_administrator\n\n    permission create_policy = policy_creator + policy_manager\n    permission view_policy = policy_creator + policy_manager + policy_member\n    permission edit_policy = policy_creator + policy_manager\n    permission delete_policy = group->security_administrator\n  \n    // assign policy to someone\n    // view audit logs of policy\n  }\n\n  // test - usermanagement policy\n  definition policy/usermanagement{\n    relation owner : user \n    relation viewer : usergroup#member | usergroup#direct_member\n    relation admin : usergroup#system_admin | usergroup#system_administrator\n  \n    permission view_profile = viewer\n    permission edit_contact = owner + admin\n    permission delete_profile = owner + admin\n\n  }\n\n  //\n  // For testing conditional scenarios\n  // \n\n  caveat has_valid_ip(user_ip ipaddress, allowed_range string) {\n    user_ip.in_cidr(allowed_range)\n  }\n\n  caveat is_weekend(today string){\n    today == 'saturday' || today == 'sunday'\n  }\n\n  caveat attributes_match(expected map<any>, provided map<any>){\n  expected.isSubtreeOf(provided)\n}"
+  "schema": {
+    "write": "// schema for pulse8 \n\n  // user represents a user \n  definition user {}\n\n  definition organization {\n    relation group: usergroup\n    relation administrator: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator\n    relation direct_member: user | usergroup#member | usergroup#direct_member | usergroup#system_administrator | usergroup#security_administrator\n\n    permission admin = administrator\n    permission member = direct_member + administrator + group->member\n\n    permission view = administrator + direct_member\n    permission update = administrator\n    permission delete = administrator\n    permission create = administrator\n  }\n\n  definition usergroup {\n    relation system_administrator : user | usergroup#member | usergroup#system_administrator\n    relation security_administrator : user | usergroup#member | usergroup#security_administrator\n    relation direct_member: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator | usergroup#direct_member\n\n    permission system_admin = system_administrator\n    permission security_admin = security_administrator\n    permission member = direct_member\n\n    permission view = system_administrator + security_administrator + direct_member\n    permission update = system_administrator + security_administrator\n    permission delete = system_administrator + security_administrator\n    permission create = system_administrator + security_administrator\n  }\n\n  // policy represents a policy \n  definition policy{\n    relation group : usergroup\n    relation policy_manager : user | usergroup#security_admin | usergroup#security_administrator\n    relation policy_member : user | usergroup#member | usergroup#system_administrator | usergroup#system_admin | usergroup#direct_member\n    relation policy_creator : user | usergroup#security_admin | usergroup#security_administrator\n\n    permission create = policy_creator + policy_manager\n    permission view = policy_creator + policy_manager + policy_member\n    permission update = policy_creator + policy_manager\n    permission delete = group->security_admin\n  }\n\n  // test - usermanagement policy \n  definition policy/usermanagement{\n    relation owner : user\n    relation viewer : usergroup#member | usergroup#direct_member | usergroup#system_administrator\n    relation admin : usergroup#system_admin | usergroup#system_administrator\n\n    permission view = owner + viewer\n    permission update = owner + admin\n    permission delete = owner + admin\n    permission create = owner + admin\n\n  }\n\n  definition userprofile{\n    relation owner : user\n    relation viewer : usergroup#member | usergroup#direct_member | usergroup#system_administrator\n    relation admin : usergroup#system_admin | usergroup#system_administrator\n\n    permission view = owner + viewer\n    permission update = owner + admin\n    permission delete = owner + admin\n    permission create = owner + admin\n\n  }\n\n  definition logs{\n    relation manager : usergroup#security_administrator | usergroup#security_admin\n\n    permission view = manager\n    permission update = manager\n    permission delete = manager\n    permission create = manager\n  }\n\n  caveat has_valid_ip(user_ip ipaddress, allowed_range string) {\n    user_ip.in_cidr(allowed_range)\n  }\n\n  caveat is_weekend(today string){\n    today == 'saturday'\n  }\n\n  caveat attributes_match(expected map<any>, provided map<any>) {\n    expected.isSubtreeOf(provided)\n  }\n"
   },
-  "createRelationships": {
-    "updates": [
-      {
-        "objectType": "usergroup",
-        "objectId": "securityAdminGrp",
-        "relation": "security_administrator",
-        "subjRefObjType": "user",
-        "subjRefObjId": "securityAdmin"
-      },
-      {
-        "objectType": "organization",
-        "objectId": "org1",
-        "relation": "administrator",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "securityAdminGrp",
-        "subjRelation": "security_administrator"
-      },
-      {
-        "objectType": "organization",
-        "objectId": "org1",
-        "relation": "group",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "securityAdminGrp"
-      },
-      {
-        "objectType": "policy",
-        "objectId": "usermanagement",
-        "relation": "policy_creator",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "securityAdminGrp",
-        "subjRelation": "security_administrator"
-      },
-      {
-        "objectType": "policy",
-        "objectId": "usermanagement",
-        "relation": "policy_manager",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "securityAdminGrp",
-        "subjRelation": "security_administrator"
-      },
-      {
-        "objectType": "policy/usermanagement",
-        "objectId": "userProfileA",
-        "relation": "owner",
-        "subjRefObjType": "user",
-        "subjRefObjId": "customerA"
-      },
-      {
-        "objectType": "policy/usermanagement",
-        "objectId": "userProfileA",
-        "relation": "admin",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "systemAdminGrp",
-        "subjRelation": "system_administrator"
-      },
-      {
-        "objectType": "policy/usermanagement",
-        "objectId": "userProfileA",
-        "relation": "viewer",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "customerB",
-        "subjRelation": "direct_member"
-      },
-      {
-        "objectType": "policy/usermanagement",
-        "objectId": "userProfileB",
-        "relation": "owner",
-        "subjRefObjType": "user",
-        "subjRefObjId": "customerB"
-      },
-      {
-        "objectType": "policy/usermanagement",
-        "objectId": "userProfileB",
-        "relation": "admin",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "systemAdminGrp",
-        "subjRelation": "system_administrator"
-      },
-      {
-        "objectType": "policy/usermanagement",
-        "objectId": "userProfileB",
-        "relation": "viewer",
-        "subjRefObjType": "usergroup",
-        "subjRefObjId": "customerB",
-        "subjRelation": "direct_member"
+  "relationships": {
+    "create": {
+      "initial": {
+        "updates": [
+        {
+          "objectType": "usergroup",
+          "objectId": "securityAdminGrp",
+          "relation": "security_administrator",
+          "subjRefObjType": "user",
+          "subjRefObjId": "securityAdmin"
+        },
+        {
+          "objectType": "organization",
+          "objectId": "org1",
+          "relation": "administrator",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "securityAdminGrp",
+          "subjRelation": "security_administrator"
+        },
+        {
+          "objectType": "organization",
+          "objectId": "org1",
+          "relation": "group",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "securityAdminGrp"
+        },
+        {
+          "objectType": "policy",
+          "objectId": "usermanagement",
+          "relation": "policy_creator",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "securityAdminGrp",
+          "subjRelation": "security_administrator"
+        },
+        {
+          "objectType": "policy",
+          "objectId": "usermanagement",
+          "relation": "policy_manager",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "securityAdminGrp",
+          "subjRelation": "security_administrator"
+        },
+        {
+          "objectType": "userprofile",
+          "objectId": "userProfileA",
+          "relation": "owner",
+          "subjRefObjType": "user",
+          "subjRefObjId": "customerA"
+        },
+        {
+          "objectType": "userprofile",
+          "objectId": "userProfileA",
+          "relation": "admin",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "systemAdminGrp",
+          "subjRelation": "system_administrator"
+        },
+        {
+          "objectType": "userprofile",
+          "objectId": "userProfileA",
+          "relation": "viewer",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "customerB",
+          "subjRelation": "direct_member"
+        },
+        {
+          "objectType": "userprofile",
+          "objectId": "userProfileB",
+          "relation": "owner",
+          "subjRefObjType": "user",
+          "subjRefObjId": "customerB"
+        },
+        {
+          "objectType": "userprofile",
+          "objectId": "userProfileB",
+          "relation": "admin",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "systemAdminGrp",
+          "subjRelation": "system_administrator"
+        },
+        {
+          "objectType": "userprofile",
+          "objectId": "userProfileB",
+          "relation": "viewer",
+          "subjRefObjType": "usergroup",
+          "subjRefObjId": "customerB",
+          "subjRelation": "direct_member"
+        }
+      ]
       }
-    ]
+    },
+    "update": {
+      "customerC": {
+        "updates": [
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "usergroup",
+            "objectId": "memberGrp",
+            "relation": "direct_member",
+            "subjRefObjType": "user",
+            "subjRefObjId": "customerC"
+          },
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "organization",
+            "objectId": "org1",
+            "relation": "direct_member",
+            "subjRefObjType": "usergroup",
+            "subjRefObjId": "customerC",
+            "subjRelation": "direct_member"
+          },
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "userprofile",
+            "objectId": "userProfileC",
+            "relation": "owner",
+            "subjRefObjType": "user",
+            "subjRefObjId": "customerC"
+          }
+        ]
+      }
+    },
+    "view": {
+      "customerC": {
+        "request": {
+          "objectType": "userprofile",
+          "subjRefObjType": "user",
+          "subjRefObjId": "customerC"
+        },
+        "response": [
+          {
+            "objectType": "userprofile",
+            "objectId": "userProfileC",
+            "relation": "owner",
+            "subjRefObjType": "user",
+            "subjRefObjId": "customerC",
+            "subjRelation": ""
+          }
+        ]
+      }
+    },
+    "delete": {
+      "customerC": {
+        "filter": {
+          "objectType": "userprofile",
+          "subjRefObjType": "user",
+          "subjRefObjId": "customerC"
+        },
+        "path": {
+          "objectType": "userprofile",
+          "objectId": "userProfileC",
+          "relation": "owner",
+          "subjRefObjType": "user",
+          "subjRefObjId": "customerC"
+        }
+      }
+    }
   },
   "checkPermission": {
+    "customerA": {
+      "update": {
+        "objectType": "userprofile",
+        "objectId": "userProfileA",
+        "subjRefObjType": "user",
+        "subjRefObjId": "customerA",
+        "permission": "update"
+      }
+    },
     "customerB": {
-      "editContact": {
-        "objectType": "policy/usermanagement",
+      "update": {
+        "objectType": "userprofile",
         "objectId": "userProfileA",
         "subjRefObjType": "user",
         "subjRefObjId": "customerB",
-        "permission": "edit_contact"
+        "permission": "update"
       }
     }
   },
@@ -106,7 +185,7 @@
       "request": {
         "objectType": "policy",
         "objectId": "usermanagement",
-        "permission": "create_policy",
+        "permission": "create",
         "subjectObjectType": "usergroup",
         "subjRelation": "security_administrator"
       },
