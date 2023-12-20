@@ -1,15 +1,20 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
+import com.authzed.api.v1.PermissionService;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 
 @Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -41,4 +46,33 @@ public class RelationshipRequestDto {
 
     @Schema(description = "Context for caveat", example = "{}")
     protected Map<String, Object> context;
+
+    protected PermissionService.RelationshipFilter buildRelationshipFilter() {
+        PermissionService.RelationshipFilter.Builder relationshipFilterBuilder = PermissionService.RelationshipFilter.newBuilder()
+                .setResourceType(objectType);
+
+        if (StringUtils.isNotEmpty(objectId)) relationshipFilterBuilder.setOptionalResourceId(objectId);
+
+        if (StringUtils.isNotEmpty(relation)) relationshipFilterBuilder.setOptionalRelation(relation);
+
+        if (Stream.of(subjRefObjType, subjRefObjId, subjRelation).anyMatch(StringUtils::isNotEmpty)) {
+            PermissionService.SubjectFilter.Builder subjectBuilder = PermissionService.SubjectFilter.newBuilder();
+
+            if (StringUtils.isNotEmpty(subjRefObjType)) subjectBuilder.setSubjectType(subjRefObjType);
+
+            if (StringUtils.isNotEmpty(subjRefObjId)) subjectBuilder.setOptionalSubjectId(subjRefObjId);
+
+            if (StringUtils.isNotEmpty(subjRelation)) {
+                subjectBuilder.setOptionalRelation(
+                        PermissionService.SubjectFilter.RelationFilter.newBuilder()
+                                .setRelation(subjRelation)
+                                .build()
+                );
+            }
+
+            relationshipFilterBuilder.setOptionalSubjectFilter(subjectBuilder.build());
+        }
+
+        return relationshipFilterBuilder.build();
+    }
 }

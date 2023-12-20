@@ -1,12 +1,12 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
-import com.authzed.api.v1.SchemaServiceOuterClass;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
+import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
@@ -25,9 +25,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +66,8 @@ public class PermissionsSteps {
 
     private static final AtomicReference<String> writeRelationshipToken = new AtomicReference<>();;
 
+    private static final AtomicReference<String> deleteRelationshipToken = new AtomicReference<>();;
+
 
     static {
         try {
@@ -87,19 +91,13 @@ public class PermissionsSteps {
             RestAssured.baseURI = "http://localhost";
             RestAssured.port = port;
             RestAssured.defaultParser = Parser.JSON;
-            JsonNode testNode = testInput.path("writeSchema").path("schema");
+            JsonNode testNode = testInput.path("schema").path("write");
             WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
             schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
-            WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("createRelationships"), WriteRelationshipRequestDto.class);
+            WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("relationships").get("create").get("initial"), WriteRelationshipRequestDto.class);
             permissionsService.writeRelationships(request.toWriteRelationshipRequest())
                     .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
-            long timeoutMillis = 10000; // 10 seconds
-            long pollingIntervalMillis = 3000; // 3 second
-            long startTime = System.currentTimeMillis();
-            do {
-                LOGGER.debug("Waiting for write relationship to complete");
-                Thread.sleep(pollingIntervalMillis);
-            } while (writeRelationshipToken.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
+            sleep(writeRelationshipToken);
             initialSetup = false;
         }
     }
@@ -252,6 +250,7 @@ public class PermissionsSteps {
         });
     }
 
+
     @When("a user gets attribute from policy with name {string}")
     public void aUserGetsAttributeFromPolicyWithName(String policyName) {
         response = given()
@@ -292,3 +291,108 @@ public class PermissionsSteps {
         //assertEquals(then.statusCode(statusCode), statusCode);
     }
 }
+
+    @And("the {string} relationships are written")
+    public void theRelationshipsAreWritten(String relation) throws InterruptedException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("update")
+                .path(relation);
+        WriteRelationshipRequestDto request = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
+        permissionsService.writeRelationships(request.toWriteRelationshipRequest())
+                .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
+        sleep(writeRelationshipToken);
+    }
+
+    @When("a user reads {string} relationships with principal {string}")
+    public void aUserReadsRelationshipsWithPrincipal(String relation, String principal) throws JsonProcessingException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("view")
+                .path(relation)
+                .path("request");
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.GET);
+        String url = "/v1/relationships" + createRequestQueryString(testNode);
+        response = builder.when().get(url);
+    }
+
+    @When("a user deletes {string} relationships by {string} with principal {string}")
+    public void aUserDeletesRelationshipsWithPrincipal(String relation, String option, String principal) throws JsonProcessingException, InterruptedException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("delete")
+                .path(relation)
+                .path(option);
+
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.DELETE);
+        String url = "/v1/relationships";
+        if (option.equals("filter")) {
+            url += createRequestQueryString(testNode);
+        } else {
+            url += "/{objectType}/{objectId}/{relation}/{subjRefObjType}/{subjRefObjId}";
+            builder.pathParams(objectMapper.convertValue(testNode, new TypeReference<>() {}));
+        }
+        response = builder.when().delete(url);
+    }
+
+    @Then("the delete response code should be {int}")
+    public void theDeleteResponseCodeShouldBe(int statusCode) throws InterruptedException {
+        ValidatableResponse then = response.then();
+        then.statusCode(statusCode);
+        deleteRelationshipToken.set(response.getBody().asString());
+        sleep(deleteRelationshipToken);
+    }
+
+    @And("the response body should contain the {string} relationship list")
+    public void theResponseBodyShouldContainTheRelationshipList(String relation) {
+        JsonNode expectedNode = testInput.path("relationships")
+                .path("view")
+                .path(relation)
+                .path("response");
+        theResponseBodyShouldContainTheListSize(1);
+        List<Object> receivedResponse = response.getBody().jsonPath().getList("");
+        JsonNode receivedNode = objectMapper.convertValue(receivedResponse, JsonNode.class);
+        Field[] fields = ReadRelationshipResponseDto.class.getSuperclass().getDeclaredFields();
+        for (Field field : fields) {
+            String fieldName = field.getName();
+            assertEquals(expectedNode.get(0).get(fieldName), receivedNode.get(0).get(fieldName));
+        }
+    }
+
+    @And("the response body should contain the list size {int}")
+    public void theResponseBodyShouldContainTheListSize(int size) {
+        response.then().assertThat().body("size()", equalTo(size));
+    }
+
+    private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
+        Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
+        final RequestSpecification builder = given();
+
+        if (httpMethodPermission.equals(HttpMethodPermission.POST)) {
+            builder
+                .contentType("application/json")
+                .body(objectMapper.writeValueAsString(requestBody));
+        }
+
+        if(principal != null && !principal.isEmpty()) {
+            builder.header(principalHeader, principal);
+        }
+
+        return builder;
+    }
+
+    private String createRequestQueryString(JsonNode testNode) {
+        Map<String, Object> queryParams = objectMapper.convertValue(testNode, new TypeReference<>() {});
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
+        queryParams.forEach(builder::queryParam);
+        return builder.build().encode().toUriString();
+    }
+
+    private void sleep(AtomicReference<String> token) throws InterruptedException {
+        long timeoutMillis = 10000; // 10 seconds
+        long pollingIntervalMillis = 3000; // 3 second
+        long startTime = System.currentTimeMillis();
+        do {
+            LOGGER.debug("Waiting for write/delete relationship to complete");
+            Thread.sleep(pollingIntervalMillis);
+        } while (token.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
+    }
+}
+

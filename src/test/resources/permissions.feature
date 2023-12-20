@@ -20,7 +20,8 @@ Feature: Permissions API
 
     Examples:
       |subjRefObjId     | permissionName | responseCode |
-      |customerB        | editContact    | 403          |
+      |customerA        | update         | 200          |
+      |customerB        | update         | 403          |
 
 
   Scenario: Lookup subjects
@@ -34,6 +35,31 @@ Feature: Permissions API
     When a user do a "resources" lookup with principal "1234"
     Then the response code should be 200
     And the response body should contain the "resources" data
+
+  Scenario Outline: Read relationships
+    Given the API is available
+    And the "<relation>" relationships are written
+    When a user reads "<relation>" relationships with principal "1234"
+    Then the response code should be 200
+    And the response body should contain the "<relation>" relationship list
+
+    Examples:
+      |relation     |
+      |customerC    |
+
+  Scenario Outline: Delete relationships
+    Given the API is available
+    And the "<relation>" relationships are written
+    When a user deletes "<relation>" relationships by "<option>" with principal "1234"
+    Then the delete response code should be 204
+    When a user reads "<relation>" relationships with principal "1234"
+    Then the response code should be 200
+    And the response body should contain the list size 0
+
+    Examples:
+      |option     | relation  |
+      |filter     | customerC |
+      |path       | customerC |
 
   Scenario: Save Policy Definition
     Given the API is available
