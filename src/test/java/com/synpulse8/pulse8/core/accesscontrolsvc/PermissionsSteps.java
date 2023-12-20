@@ -288,9 +288,7 @@ public class PermissionsSteps {
     public void theAttributeResponseCodeShouldBe(int statusCode) {
         ValidatableResponse then = response.then();
         then.statusCode(statusCode);
-        //assertEquals(then.statusCode(statusCode), statusCode);
     }
-}
 
     @And("the {string} relationships are written")
     public void theRelationshipsAreWritten(String relation) throws InterruptedException {
