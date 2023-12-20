@@ -49,4 +49,4 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./local/data/db:/data/db
+      - /local/data/db:/data/db
