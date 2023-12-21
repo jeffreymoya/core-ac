@@ -132,21 +132,22 @@ public class PolicyDefinitionService {
 
         Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(resourceName);
 
-        if (policyMetaData.isEmpty()) {
-            throw new P8CException("Policy not found in MongoDB: " + resourceName);
-        }
-
         CompletableFuture<String> schemaFuture = fetchSchemaText();
         CompletableFuture<List<PolicyRolesAndPermissions>> rolesAndPermissionsFuture = schemaFuture.thenApply(PolicyRolesAndPermissions::fromList);
         PolicyDefinitionDto.PolicyDefinitionDtoBuilder builder = PolicyDefinitionDto.builder();
 
         return rolesAndPermissionsFuture.thenApply(rolesAndPermission -> {
+            builder.name(resourceName);
             Optional<PolicyRolesAndPermissions> policyRolesAndPermissions =  rolesAndPermission.stream()
                     .filter(item -> item.getName().equals(resourceName))
                     .findAny();
+
+            if (policyMetaData.isEmpty() && policyRolesAndPermissions.isEmpty()) {
+                throw new P8CException("Policy not found in MongoDB/spiceDB: " + resourceName);
+            }
+
             policyMetaData.ifPresent( policy -> {
-                builder.name(policy.getName())
-                        .description(policy.getDescription())
+                builder.description(policy.getDescription())
                         .attributes(policy.getAttributes())
                         .access(policy.getAccess());
             });
