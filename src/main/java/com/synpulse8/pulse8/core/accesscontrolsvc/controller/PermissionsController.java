@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -47,11 +50,11 @@ public class PermissionsController {
     @Value("${p8c.security.principal-header}")
     private String subject;
 
-    @Value("${p8c.route-check.constants.objectType}")
-    private String objectType;
-
     @Value("${p8c.route-check.constants.subjRefObjType}")
     private String subjRefObjType;
+
+    //TODO: make this configurable
+    private UriTemplate uriTemplate = new UriTemplate("/{resourceType}{/?}{resourceId:.*}");
 
     @Autowired
     public PermissionsController(PermissionsService permissionsService) {
@@ -122,12 +125,23 @@ public class PermissionsController {
     })
     public CompletableFuture<ResponseEntity<Object>> routeCheck(@Valid @RequestBody CheckRoutePermissionDto requestBody, HttpServletRequest request) {
         URI uri = UriComponentsBuilder.fromUriString(requestBody.getRoute()).build().toUri();
+
+        //TODO: Accept a URL Template from the request to tell which part of the URL is the resourceType and the resourceId
+        //TODO: Support query parameters from the URL
+        Map<String, String> matches = uriTemplate.match(uri.getPath());
+        String objectType = matches.get("resourceType");
+        String objectid = "-"; //default index if there's no resourceId
+
+        if(StringUtils.isNotEmpty(matches.get("resourceId"))) {
+            objectid = StringUtils.removeStart("/", matches.get("resourceId"));
+        }
+
         CheckPermissionRequestDto checkRoutePermissionDto = CheckPermissionRequestDto.builder()
                 .permission(requestBody.getMethod().getPermission())
                 .subjRefObjId(request.getHeader(subject))
                 .subjRefObjType(subjRefObjType)
                 .objectType(objectType)
-                .objectId(uri.getPath())
+                .objectId(objectid)
                 .build();
 
         return getCheckPermissionAndTransformResponse(checkRoutePermissionDto);
