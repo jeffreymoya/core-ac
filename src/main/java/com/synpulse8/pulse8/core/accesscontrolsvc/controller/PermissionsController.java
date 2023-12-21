@@ -58,7 +58,7 @@ public class PermissionsController {
         this.permissionsService = permissionsService;
     }
 
-    @PostMapping("/relationships/write")
+    @PostMapping("/relationships")
     @Operation(description = "Write Relationships", summary = "Endpoint to write relationships.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully wrote relationships", content = @Content(schema = @Schema(implementation = WriteRelationshipRequestDto.class))),
