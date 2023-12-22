@@ -30,13 +30,13 @@ public class AttributeController {
         this.policyDefinitionService = policyDefinitionService;
     }
 
-    @RequestMapping(value = "/attribute", method = RequestMethod.POST)
+    @RequestMapping(value = "/attributes", method = RequestMethod.POST)
     public void addAttributeDefinition(@RequestBody AttributeDefinitionDto dto) throws P8CException {
         policyDefinitionService.updateAttributeDefinition(dto.getPolicyName(), dto.getAttributes());
     }
 
-    @RequestMapping(value = "/attributes", method = RequestMethod.GET)
-    public CompletableFuture<Map<String,Object>> getAttributeDefinitions(@RequestParam(name="policyName", required = false)String policyName) throws P8CException {
+    @RequestMapping(value = "/attributes/{policyName}", method = RequestMethod.GET)
+    public CompletableFuture<Map<String,Object>> getAttributeDefinitions(@PathVariable String policyName) throws P8CException {
         return policyDefinitionService.viewAttributeDefinitions(policyName);
     }
 }
