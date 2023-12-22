@@ -2,10 +2,10 @@
 p8c:
   security:
     principal-header: "X-Authenticated-User"
+    roles-header: "X-Authenticated-Roles"
   route-check:
     constants:
       objectType: "route"
-      subjRefObjType: "user"
 
 spring:
   data:

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
@@ -249,6 +250,46 @@ public class PermissionsSteps {
         });
     }
 
+
+    @When("a user gets attribute from policy with name {string}")
+    public void aUserGetsAttributeFromPolicyWithName(String policyName) {
+        response = given()
+                .header(principalHeader, "test-user")
+                .when()
+                .get("/v1/attributes/" + policyName);
+    }
+
+    @Then("the response body should contain a map of policy attributes")
+    public void theResponseBodyShouldContainAMapOfPolicyAttributes(){
+        JsonNode policy = testInput.path("policy");
+        PolicyDefinitionDto dto = objectMapper.convertValue(policy, PolicyDefinitionDto.class);
+        dto.getAttributes().entrySet().stream().forEach( entry ->
+                assertEquals(dto.getAttributes().get(entry.getKey()), entry.getValue())
+        );
+    }
+
+    @When("a user adds attribute to an existing policy")
+    public void aUserAddsAttributeToAnExistingPolicy() throws P8CException, JsonProcessingException {
+        JsonNode attributes = testInput.path("attribute");
+        AttributeDefinitionDto attributeDefinitionDto = objectMapper.convertValue(attributes, AttributeDefinitionDto.class);
+
+        RequestSpecification builder = given()
+                .contentType("application/json")
+                .body(objectMapper.writeValueAsString(attributeDefinitionDto));
+
+        response = builder
+                .header(principalHeader, "test-user")
+                .when()
+                .post("/v1/attributes");
+
+    }
+
+    @Then("the attribute response code should be {int}")
+    public void theAttributeResponseCodeShouldBe(int statusCode) {
+        ValidatableResponse then = response.then();
+        then.statusCode(statusCode);
+    }
+
     @And("the {string} relationships are written")
     public void theRelationshipsAreWritten(String relation) throws InterruptedException {
         JsonNode testNode = testInput.path("relationships")
@@ -318,14 +359,42 @@ public class PermissionsSteps {
         response.then().assertThat().body("size()", equalTo(size));
     }
 
+    @When("a user writes {string} relation and permission to the {string} resource with principal {string}")
+    public void aUserUpdatesSchemaWithPrincipal(String relation, String resource, String principal) throws JsonProcessingException {
+        JsonNode testNode = testInput.path("schema")
+                .path("update")
+                .path(resource)
+                .path(relation);
+        WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
+
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+
+        response = builder
+                .body(requestBody)
+                .when()
+                .post("/v1/schema");
+    }
+
+    @When("a user writes {string} relationship to the resource with principal {string}")
+    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws JsonProcessingException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("create")
+                .path(relation);
+        WriteRelationshipRequestDto requestBody = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
+
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+
+        response = builder
+                .body(requestBody)
+                .when()
+                .post("/v1/relationships");
+    }
+
     private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
-        Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
         final RequestSpecification builder = given();
 
         if (httpMethodPermission.equals(HttpMethodPermission.POST)) {
-            builder
-                .contentType("application/json")
-                .body(objectMapper.writeValueAsString(requestBody));
+            builder.contentType("application/json");
         }
 
         if(principal != null && !principal.isEmpty()) {
@@ -350,5 +419,23 @@ public class PermissionsSteps {
             LOGGER.debug("Waiting for write/delete relationship to complete");
             Thread.sleep(pollingIntervalMillis);
         } while (token.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
+    }
+
+
+    @When("a user gets definition of policy with name {string}")
+    public void aUserGetsDefinitionOfPolicyWithName(String policyName) {
+        response = given()
+                .header(principalHeader, "test-user")
+                .when()
+                .get("/v1/policies/" + policyName);
+    }
+
+    @Then("the response body should contain a map of policy definition")
+    public void theResponseBodyShouldContainAMapOfPolicyDefinition(){
+        JsonNode policy = testInput.path("policy");
+        PolicyDefinitionDto dto = objectMapper.convertValue(policy, PolicyDefinitionDto.class);
+        dto.getAttributes().entrySet().stream().forEach( entry ->
+                assertEquals(dto.getAttributes().get(entry.getKey()), entry.getValue())
+        );
     }
 }

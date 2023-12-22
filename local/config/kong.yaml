@@ -43,6 +43,7 @@ plugins:
   config:
     pdp_endpoint: http://localhost:3010/v1/permissions/route/check
     auth_user_header: "X-Authenticated-User"
+    auth_roles_header: "X-Authenticated-Roles"
   protocols:
     - grpc
     - grpcs

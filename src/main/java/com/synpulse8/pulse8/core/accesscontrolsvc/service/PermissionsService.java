@@ -5,14 +5,22 @@ import com.authzed.api.v1.PermissionService.CheckPermissionResponse;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeResponse;
 import com.authzed.api.v1.PermissionService.ReadRelationshipsRequest;
 import com.authzed.api.v1.PermissionService.ReadRelationshipsResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckPermissionRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckRoutePermissionDto;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 
-import static com.authzed.api.v1.PermissionService.*;
+import static com.authzed.api.v1.PermissionService.DeleteRelationshipsRequest;
+import static com.authzed.api.v1.PermissionService.DeleteRelationshipsResponse;
+import static com.authzed.api.v1.PermissionService.ExpandPermissionTreeRequest;
+import static com.authzed.api.v1.PermissionService.LookupResourcesRequest;
+import static com.authzed.api.v1.PermissionService.LookupResourcesResponse;
+import static com.authzed.api.v1.PermissionService.LookupSubjectsRequest;
+import static com.authzed.api.v1.PermissionService.LookupSubjectsResponse;
+import static com.authzed.api.v1.PermissionService.WriteRelationshipsRequest;
+import static com.authzed.api.v1.PermissionService.WriteRelationshipsResponse;
 
 @Service
 public interface PermissionsService {
@@ -30,4 +38,6 @@ public interface PermissionsService {
     CompletableFuture<Iterator<LookupResourcesResponse>> lookupResources(LookupResourcesRequest request);
 
     CompletableFuture<Iterator<LookupSubjectsResponse>> lookupSubjects(LookupSubjectsRequest request);
+
+    CompletableFuture<Boolean> bulkCheckPermissions(CheckPermissionRequestDto dto, String roles) throws JsonProcessingException;
 }
