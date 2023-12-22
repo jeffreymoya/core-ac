@@ -52,11 +52,11 @@ public class PermissionsController {
     @Value("${p8c.security.principal-header}")
     private String subject;
 
-    //TODO: make this configurable
-    private UriTemplate uriTemplate = new UriTemplate("/{resourceType}{/?}{resourceId:.*}");
-
     @Value("${p8c.security.roles-header}")
     private String roles;
+
+    //TODO: make this configurable
+    private UriTemplate uriTemplate = new UriTemplate("/{resourceType}{/?}{resourceId:.*}");
 
     @Autowired
     public PermissionsController(PermissionsService permissionsService) {
