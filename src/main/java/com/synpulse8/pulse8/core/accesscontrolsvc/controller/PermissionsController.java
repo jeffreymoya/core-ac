@@ -153,7 +153,6 @@ public class PermissionsController {
         CheckPermissionRequestDto dto = CheckPermissionRequestDto.builder()
                 .permission(requestBody.getMethod().getPermission())
                 .subjRefObjId(request.getHeader(subject))
-                .subjRefObjType(roles)
                 .objectType(objectType)
                 .objectId(objectid)
                 .build();
