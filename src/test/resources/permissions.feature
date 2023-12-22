@@ -81,3 +81,14 @@ Feature: Permissions API
     Then the response code should be 200
     When a user checks PBAC "update" permission of "adviserA" with principal "1234"
     Then the response code should be 200
+
+  Scenario: Get Attributes from Existing Policy
+    Given the API is available
+    When a user gets attribute from policy with name "policytest"
+    Then the response code should be 200
+    And the response body should contain a map of policy attributes
+
+  Scenario: Add Attributes to Existing Policy
+    Given the API is available
+    When a user adds attribute to an existing policy
+    Then the attribute response code should be 200

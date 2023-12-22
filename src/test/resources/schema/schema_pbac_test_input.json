@@ -337,5 +337,11 @@
       "access": "local"
     },
     "access": "allow"
+  },
+  "attribute": {
+    "policyName": "policytest",
+    "attributes": {
+      "department" : "product-manufacturing"
+    }
   }
 }
