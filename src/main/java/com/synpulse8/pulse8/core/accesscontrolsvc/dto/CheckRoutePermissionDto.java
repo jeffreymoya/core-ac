@@ -15,8 +15,7 @@ public class CheckRoutePermissionDto {
     @Schema(description = "The route to check permission for", example = "/v1/clients/1234")
     @NotBlank(message = "Route cannot be blank")
     private String route;
-    @Schema(description = "The HTTP method to check permission for", example = "GET")
-    @NotNull(message = "Method cannot be null")
-    private HttpMethodPermission method;
+    @Schema(description = "The HTTP method to check permission for", example = "GET", defaultValue = "GET")
+    private HttpMethodPermission method = HttpMethodPermission.GET;
 
 }

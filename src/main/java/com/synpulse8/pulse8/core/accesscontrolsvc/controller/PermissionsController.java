@@ -3,6 +3,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 import com.authzed.api.v1.PermissionService.CheckPermissionResponse;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeRequest;
 import com.authzed.api.v1.PermissionService.ExpandPermissionTreeResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.ApiError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +27,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
 
 import java.net.URI;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -47,11 +52,11 @@ public class PermissionsController {
     @Value("${p8c.security.principal-header}")
     private String subject;
 
-    @Value("${p8c.route-check.constants.objectType}")
-    private String objectType;
+    //TODO: make this configurable
+    private UriTemplate uriTemplate = new UriTemplate("/{resourceType}{/?}{resourceId:.*}");
 
-    @Value("${p8c.route-check.constants.subjRefObjType}")
-    private String subjRefObjType;
+    @Value("${p8c.security.roles-header}")
+    private String roles;
 
     @Autowired
     public PermissionsController(PermissionsService permissionsService) {
@@ -112,29 +117,7 @@ public class PermissionsController {
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to check permissions", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
     public CompletableFuture<ResponseEntity<Object>> checkPermissions(@RequestBody CheckPermissionRequestDto requestBody) {
-        return getCheckPermissionAndTransformResponse(requestBody);
-    }
-    @PostMapping("/permissions/route/check")
-    @Operation(description = "Check Permissions", summary = "Endpoint to check permissions.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully checked permissions", content = @Content(schema = @Schema(implementation = CheckPermissionResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to check permissions", content = @Content(schema = @Schema(implementation = ApiError.class))),
-    })
-    public CompletableFuture<ResponseEntity<Object>> routeCheck(@Valid @RequestBody CheckRoutePermissionDto requestBody, HttpServletRequest request) {
-        URI uri = UriComponentsBuilder.fromUriString(requestBody.getRoute()).build().toUri();
-        CheckPermissionRequestDto checkRoutePermissionDto = CheckPermissionRequestDto.builder()
-                .permission(requestBody.getMethod().getPermission())
-                .subjRefObjId(request.getHeader(subject))
-                .subjRefObjType(subjRefObjType)
-                .objectType(objectType)
-                .objectId(uri.getPath())
-                .build();
-
-        return getCheckPermissionAndTransformResponse(checkRoutePermissionDto);
-    }
-
-    private CompletableFuture<ResponseEntity<Object>> getCheckPermissionAndTransformResponse(CheckPermissionRequestDto checkRoutePermissionDto) {
-        return permissionsService.checkPermissions(checkRoutePermissionDto.toCheckPermissionRequest())
+        return permissionsService.checkPermissions(requestBody.toCheckPermissionRequest())
                 .thenApply(x -> {
                     if (x.getPermissionship() == CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION) {
                         return ResponseEntity.ok(Collections.singletonMap("has_permission", true));
@@ -142,6 +125,42 @@ public class PermissionsController {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("has_permission", false));
                     }
                 });
+    }
+    @PostMapping("/permissions/route/check")
+    @Operation(description = "Check Permissions from route resource", summary = "Endpoint to check permissions from route resource.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully checked permissions from route resource", content = @Content(schema = @Schema(implementation = CheckPermissionResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to check permissions from route resource", content = @Content(schema = @Schema(implementation = ApiError.class))),
+    })
+    public CompletableFuture<ResponseEntity<Object>> routeCheck(@Valid @RequestBody CheckRoutePermissionDto requestBody, HttpServletRequest request) throws JsonProcessingException {
+        URI uri = UriComponentsBuilder.fromUriString(requestBody.getRoute()).build().toUri();
+        byte[] decode = Base64.getDecoder().decode(request.getHeader(roles));
+        String roles = new String(decode);
+        LOGGER.debug("Roles: {}", roles);
+        //TODO: Accept a URL Template from the request to tell which part of the URL is the resourceType and the resourceId
+        //TODO: Support query parameters from the URL
+        Map<String, String> matches = uriTemplate.match(uri.getPath());
+        String objectType = matches.get("resourceType");
+        String objectid = "-"; //default index if there's no resourceId
+
+        if(StringUtils.isNotEmpty(matches.get("resourceId"))) {
+            objectid = StringUtils.removeStart("/", matches.get("resourceId"));
+        }
+
+        CheckPermissionRequestDto dto = CheckPermissionRequestDto.builder()
+                .permission(requestBody.getMethod().getPermission())
+                .subjRefObjId(request.getHeader(subject))
+                .objectType(objectType)
+                .objectId(objectid)
+                .build();
+
+        return permissionsService.bulkCheckPermissions(dto, roles).thenApply(hasPermission -> {
+            if (hasPermission) {
+                return ResponseEntity.ok(Collections.singletonMap("has_permission", true));
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("has_permission", false));
+            }
+        });
     }
 
     @PostMapping("/permissions/expand")

@@ -23,6 +23,10 @@ local schema = {
             type = "string",
             required = true,
           }},
+          { auth_roles_header = {
+            type = "string",
+            required = true,
+          }},
         },
       },
     },

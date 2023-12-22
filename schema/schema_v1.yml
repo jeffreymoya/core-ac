@@ -2,6 +2,11 @@
 
   /** user represents a user */
   definition user {}
+  
+  definition echo {
+    relation viewer: user | user:*
+    permission view = viewer
+  }
 
   definition organization {
     relation group: usergroup
