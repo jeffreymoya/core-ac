@@ -359,14 +359,42 @@ public class PermissionsSteps {
         response.then().assertThat().body("size()", equalTo(size));
     }
 
+    @When("a user writes {string} relation and permission to the {string} resource with principal {string}")
+    public void aUserUpdatesSchemaWithPrincipal(String relation, String resource, String principal) throws JsonProcessingException {
+        JsonNode testNode = testInput.path("schema")
+                .path("update")
+                .path(resource)
+                .path(relation);
+        WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
+
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+
+        response = builder
+                .body(requestBody)
+                .when()
+                .post("/v1/schema");
+    }
+
+    @When("a user writes {string} relationship to the resource with principal {string}")
+    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws JsonProcessingException {
+        JsonNode testNode = testInput.path("relationships")
+                .path("create")
+                .path(relation);
+        WriteRelationshipRequestDto requestBody = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
+
+        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+
+        response = builder
+                .body(requestBody)
+                .when()
+                .post("/v1/relationships");
+    }
+
     private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
-        Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
         final RequestSpecification builder = given();
 
         if (httpMethodPermission.equals(HttpMethodPermission.POST)) {
-            builder
-                .contentType("application/json")
-                .body(objectMapper.writeValueAsString(requestBody));
+            builder.contentType("application/json");
         }
 
         if(principal != null && !principal.isEmpty()) {

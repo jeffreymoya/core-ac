@@ -73,6 +73,15 @@ Feature: Permissions API
     Then the response code should be 200
     And the response should contain a list of policy definitions
 
+  Scenario: Assign Policy to Resource
+    Given the API is available
+    When a user writes "adviser" relation and permission to the "userprofile" resource with principal "1234"
+    Then the response code should be 200
+    When a user writes "adviser" relationship to the resource with principal "1234"
+    Then the response code should be 200
+    When a user checks PBAC "update" permission of "adviserA" with principal "1234"
+    Then the response code should be 200
+
   Scenario: Get Definition from Existing Policy
     Given the API is available
     When a user gets definition of policy with name "policytest"
