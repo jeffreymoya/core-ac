@@ -52,9 +52,6 @@ public class PermissionsController {
     @Value("${p8c.security.principal-header}")
     private String subject;
 
-    @Value("${p8c.route-check.constants.subjRefObjType}")
-    private String subjRefObjType;
-
     //TODO: make this configurable
     private UriTemplate uriTemplate = new UriTemplate("/{resourceType}{/?}{resourceId:.*}");
 
