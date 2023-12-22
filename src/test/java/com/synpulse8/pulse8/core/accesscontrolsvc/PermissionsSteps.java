@@ -420,5 +420,22 @@ public class PermissionsSteps {
             Thread.sleep(pollingIntervalMillis);
         } while (token.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
     }
-}
 
+
+    @When("a user gets definition of policy with name {string}")
+    public void aUserGetsDefinitionOfPolicyWithName(String policyName) {
+        response = given()
+                .header(principalHeader, "test-user")
+                .when()
+                .get("/v1/policies/" + policyName);
+    }
+
+    @Then("the response body should contain a map of policy definition")
+    public void theResponseBodyShouldContainAMapOfPolicyDefinition(){
+        JsonNode policy = testInput.path("policy");
+        PolicyDefinitionDto dto = objectMapper.convertValue(policy, PolicyDefinitionDto.class);
+        dto.getAttributes().entrySet().stream().forEach( entry ->
+                assertEquals(dto.getAttributes().get(entry.getKey()), entry.getValue())
+        );
+    }
+}

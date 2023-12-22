@@ -9,6 +9,8 @@ logging:
         pulse8:
           core:
             accesscontrolsvc: debug
+      authzed:
+        api: debug
     root: error
     org:
       apache:
