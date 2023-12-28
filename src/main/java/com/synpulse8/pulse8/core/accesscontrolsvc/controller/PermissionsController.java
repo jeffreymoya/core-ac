@@ -25,7 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 
@@ -35,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @RestController
 @OpenAPIDefinition(
@@ -55,8 +63,7 @@ public class PermissionsController {
     @Value("${p8c.security.roles-header}")
     private String roles;
 
-    //TODO: make this configurable
-    private UriTemplate uriTemplate = new UriTemplate("/{resourceType}{/?}{resourceId:.*}");
+    private final ConcurrentMap<String, UriTemplate> uriTemplateCache = new ConcurrentHashMap<>();
 
     @Autowired
     public PermissionsController(PermissionsService permissionsService) {
@@ -137,15 +144,20 @@ public class PermissionsController {
         byte[] decode = Base64.getDecoder().decode(request.getHeader(roles));
         String roles = new String(decode);
         LOGGER.debug("Roles: {}", roles);
-        //TODO: Accept a URL Template from the request to tell which part of the URL is the resourceType and the resourceId
         //TODO: Support query parameters from the URL
+        LOGGER.debug("URI Template: {}", requestBody.getUriTemplate());
+        LOGGER.debug("Route: {}", requestBody.getRoute());
+        UriTemplate uriTemplate = uriTemplateCache.computeIfAbsent(requestBody.getUriTemplate(), UriTemplate::new);
         Map<String, String> matches = uriTemplate.match(uri.getPath());
         String objectType = matches.get("resourceType");
         String objectid = "-"; //default index if there's no resourceId
 
         if(StringUtils.isNotEmpty(matches.get("resourceId"))) {
-            objectid = StringUtils.removeStart("/", matches.get("resourceId"));
+            objectid = StringUtils.removeStart(matches.get("resourceId"), "/");
         }
+
+        LOGGER.debug("objectType: {}", objectType);
+        LOGGER.debug("objectid: {}", objectid);
 
         CheckPermissionRequestDto dto = CheckPermissionRequestDto.builder()
                 .permission(requestBody.getMethod().getPermission())

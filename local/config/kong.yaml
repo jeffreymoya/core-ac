@@ -44,6 +44,7 @@ plugins:
     pdp_endpoint: http://localhost:3010/v1/permissions/route/check
     auth_user_header: "X-Authenticated-User"
     auth_roles_header: "X-Authenticated-Roles"
+    uri_template: "/{resourceType}{/?}{resourceId:.*}"
   protocols:
     - grpc
     - grpcs

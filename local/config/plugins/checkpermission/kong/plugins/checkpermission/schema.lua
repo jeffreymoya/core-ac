@@ -27,6 +27,10 @@ local schema = {
             type = "string",
             required = true,
           }},
+          { uri_template = {
+            type = "string",
+            required = true,
+          }},
         },
       },
     },

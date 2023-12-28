@@ -14,7 +14,7 @@ function Utils.checkPermission(user, roles, routePath, httpMethod, plugin_conf)
       [plugin_conf.auth_user_header] = user,
       [plugin_conf.auth_roles_header] = roles,
     },
-    body = cjson.encode({ route = routePath, method = httpMethod }),
+    body = cjson.encode({ route = routePath, method = httpMethod, uri_template = plugin_conf.uri_template }),
   })
 
   kong.log.debug("Received roles: ", roles)
