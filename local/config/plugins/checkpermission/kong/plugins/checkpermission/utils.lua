@@ -3,7 +3,7 @@ local cjson = require "cjson.safe"
 
 local Utils = {}
 
-function Utils.checkPermission(user, roles, routePath, httpMethod, plugin_conf)
+function Utils.checkPermission(user, routePath, httpMethod, plugin_conf)
   local httpc = http.new()
   httpc:set_timeout(5000)
 
@@ -12,12 +12,9 @@ function Utils.checkPermission(user, roles, routePath, httpMethod, plugin_conf)
     headers = {
       ["Content-Type"] = "application/json",
       [plugin_conf.auth_user_header] = user,
-      [plugin_conf.auth_roles_header] = roles,
     },
     body = cjson.encode({ route = routePath, method = httpMethod, uri_template = plugin_conf.uri_template }),
   })
-
-  kong.log.debug("Received roles: ", roles)
 
   if not res then
     kong.log.err("Failed to make API request: ", err)

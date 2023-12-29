@@ -9,7 +9,7 @@ Feature: Permissions API
     Given the API is available
     When a user checks permissions with principal "1234"
     Then the response code should be 500
-    And the response should contain "object definition `blog/post` not found"
+    And the error should contain "object definition `blog/post` not found"
 
 
   Scenario Outline: Check PBAC Permissions
@@ -98,3 +98,9 @@ Feature: Permissions API
     Given the API is available
     When a user adds attribute to an existing policy
     Then the attribute response code should be 200
+
+  Scenario: Check Route Permissions
+    Given the API is available
+    When a user checks route permissions via "GET" with principal "1234" and route "/pulse8/123" and uriTemplate "/{resourceType}{/?}{resourceId:.*}"
+    Then the response code should be 403
+    And the response should contain "has_permission"

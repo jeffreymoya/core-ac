@@ -38,6 +38,4 @@ public interface PermissionsService {
     CompletableFuture<Iterator<LookupResourcesResponse>> lookupResources(LookupResourcesRequest request);
 
     CompletableFuture<Iterator<LookupSubjectsResponse>> lookupSubjects(LookupSubjectsRequest request);
-
-    CompletableFuture<Boolean> bulkCheckPermissions(CheckPermissionRequestDto dto, String roles) throws JsonProcessingException;
 }

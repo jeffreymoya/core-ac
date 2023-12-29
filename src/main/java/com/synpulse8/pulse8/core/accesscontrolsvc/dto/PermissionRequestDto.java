@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
@@ -20,6 +21,7 @@ import java.util.Map;
         LookupResourcesRequestDto.class,
         CheckPermissionRequestDto.class
 })
+@ToString
 public class PermissionRequestDto {
 
     @Schema(description = "Indicates that all data used in the API call must be *at least as fresh* as that found in the ZedToken", example = "GhUKEzE3MDI1NDY2OTI0MjE4NjgxOTk")
