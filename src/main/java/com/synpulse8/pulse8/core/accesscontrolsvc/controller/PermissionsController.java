@@ -25,16 +25,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 
 import java.net.URI;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @RestController
 @OpenAPIDefinition(
@@ -52,11 +59,10 @@ public class PermissionsController {
     @Value("${p8c.security.principal-header}")
     private String subject;
 
-    @Value("${p8c.security.roles-header}")
-    private String roles;
+    @Value("${p8c.route-check.constants.subjectType}")
+    private String subjectType;
 
-    //TODO: make this configurable
-    private UriTemplate uriTemplate = new UriTemplate("/{resourceType}{/?}{resourceId:.*}");
+    private final ConcurrentMap<String, UriTemplate> uriTemplateCache = new ConcurrentHashMap<>();
 
     @Autowired
     public PermissionsController(PermissionsService permissionsService) {
@@ -117,14 +123,7 @@ public class PermissionsController {
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to check permissions", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
     public CompletableFuture<ResponseEntity<Object>> checkPermissions(@RequestBody CheckPermissionRequestDto requestBody) {
-        return permissionsService.checkPermissions(requestBody.toCheckPermissionRequest())
-                .thenApply(x -> {
-                    if (x.getPermissionship() == CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION) {
-                        return ResponseEntity.ok(Collections.singletonMap("has_permission", true));
-                    } else {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("has_permission", false));
-                    }
-                });
+        return getResponseEntityCompletableFuture(requestBody);
     }
     @PostMapping("/permissions/route/check")
     @Operation(description = "Check Permissions from route resource", summary = "Endpoint to check permissions from route resource.")
@@ -134,33 +133,40 @@ public class PermissionsController {
     })
     public CompletableFuture<ResponseEntity<Object>> routeCheck(@Valid @RequestBody CheckRoutePermissionDto requestBody, HttpServletRequest request) throws JsonProcessingException {
         URI uri = UriComponentsBuilder.fromUriString(requestBody.getRoute()).build().toUri();
-        byte[] decode = Base64.getDecoder().decode(request.getHeader(roles));
-        String roles = new String(decode);
-        LOGGER.debug("Roles: {}", roles);
-        //TODO: Accept a URL Template from the request to tell which part of the URL is the resourceType and the resourceId
         //TODO: Support query parameters from the URL
+        LOGGER.debug("URI Template: {}", requestBody.getUriTemplate());
+        LOGGER.debug("Route: {}", requestBody.getRoute());
+        UriTemplate uriTemplate = uriTemplateCache.computeIfAbsent(requestBody.getUriTemplate(), UriTemplate::new);
         Map<String, String> matches = uriTemplate.match(uri.getPath());
         String objectType = matches.get("resourceType");
         String objectid = "-"; //default index if there's no resourceId
 
         if(StringUtils.isNotEmpty(matches.get("resourceId"))) {
-            objectid = StringUtils.removeStart("/", matches.get("resourceId"));
+            objectid = StringUtils.removeStart(matches.get("resourceId"), "/");
         }
 
         CheckPermissionRequestDto dto = CheckPermissionRequestDto.builder()
                 .permission(requestBody.getMethod().getPermission())
                 .subjRefObjId(request.getHeader(subject))
+                .subjRefObjType(subjectType)
                 .objectType(objectType)
                 .objectId(objectid)
                 .build();
 
-        return permissionsService.bulkCheckPermissions(dto, roles).thenApply(hasPermission -> {
-            if (hasPermission) {
-                return ResponseEntity.ok(Collections.singletonMap("has_permission", true));
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("has_permission", false));
-            }
-        });
+        LOGGER.debug("CheckPermissionRequestDto: {}", dto);
+
+        return getResponseEntityCompletableFuture(dto);
+    }
+
+    private CompletableFuture<ResponseEntity<Object>> getResponseEntityCompletableFuture(CheckPermissionRequestDto dto) {
+        return permissionsService.checkPermissions(dto.toCheckPermissionRequest())
+                .thenApply(x -> {
+                    if (x.getPermissionship() == CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION) {
+                        return ResponseEntity.ok(Collections.singletonMap("has_permission", true));
+                    } else {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("has_permission", false));
+                    }
+                });
     }
 
     @PostMapping("/permissions/expand")

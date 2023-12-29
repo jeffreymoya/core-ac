@@ -4,9 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
-import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.AttributeDefinitionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckPermissionRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckRoutePermissionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
@@ -37,6 +43,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasLength;
 import static org.junit.Assert.assertEquals;
@@ -134,9 +141,14 @@ public class PermissionsSteps {
         then.statusCode(statusCode);
     }
 
+    @Then("the error should contain {string}")
+    public void theErrorShouldContain(String expectedResponse) {
+        response.then().body("error", equalTo(expectedResponse));
+    }
+
     @Then("the response should contain {string}")
     public void theResponseShouldContain(String expectedResponse) {
-        response.then().body("error", equalTo(expectedResponse));
+        response.then().assertThat().body(containsString(expectedResponse));
     }
     @When("a user checks PBAC {string} permission of {string} with principal {string}")
     public void aUserChecksPBACPermission(String permissionName, String subjRefObjId, String principal) throws IOException {
@@ -437,5 +449,22 @@ public class PermissionsSteps {
         dto.getAttributes().entrySet().stream().forEach( entry ->
                 assertEquals(dto.getAttributes().get(entry.getKey()), entry.getValue())
         );
+    }
+
+    @When("a user checks route permissions via {string} with principal {string} and route {string} and uriTemplate {string}")
+    public void aUserChecksRoutePermissionsWithPrincipalAndRoute(String method, String principal, String route, String uriTemplate) {
+        CheckRoutePermissionDto dto = CheckRoutePermissionDto.builder()
+                .route(route)
+                .method(HttpMethodPermission.valueOf(method))
+                .uriTemplate(uriTemplate)
+                .build();
+
+
+        response = given()
+                .header(principalHeader, principal)
+                .contentType("application/json")
+                .body(dto)
+                .when()
+                .post("/v1/permissions/route/check");
     }
 }

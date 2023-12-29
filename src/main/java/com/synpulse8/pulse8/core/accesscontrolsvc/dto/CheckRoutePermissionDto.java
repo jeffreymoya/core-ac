@@ -1,9 +1,9 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -17,5 +17,7 @@ public class CheckRoutePermissionDto {
     private String route;
     @Schema(description = "The HTTP method to check permission for", example = "GET", defaultValue = "GET")
     private HttpMethodPermission method = HttpMethodPermission.GET;
+    @JsonProperty("uri_template")
+    private String uriTemplate;
 
 }

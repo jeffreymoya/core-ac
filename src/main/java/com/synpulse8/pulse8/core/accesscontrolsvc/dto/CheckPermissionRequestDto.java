@@ -5,11 +5,13 @@ import com.authzed.api.v1.PermissionService;
 import com.google.protobuf.Struct;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
 @NoArgsConstructor
+@ToString(callSuper = true)
 public class CheckPermissionRequestDto extends PermissionRequestDto {
     public PermissionService.CheckPermissionRequest toCheckPermissionRequest() {
         Core.SubjectReference.Builder subjectBuilder = Core.SubjectReference.newBuilder()
@@ -44,6 +46,5 @@ public class CheckPermissionRequestDto extends PermissionRequestDto {
         }
 
         return builder.build();
-
     }
 }

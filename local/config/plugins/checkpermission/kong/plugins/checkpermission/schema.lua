@@ -23,7 +23,7 @@ local schema = {
             type = "string",
             required = true,
           }},
-          { auth_roles_header = {
+          { uri_template = {
             type = "string",
             required = true,
           }},

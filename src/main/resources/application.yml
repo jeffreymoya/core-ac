@@ -6,6 +6,7 @@ p8c:
   route-check:
     constants:
       objectType: "route"
+      subjectType: "user"
 
 spring:
   data:
