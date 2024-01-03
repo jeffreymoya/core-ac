@@ -22,6 +22,8 @@ import java.util.stream.Stream;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "DTO for representing a relationship request", subTypes = {
         WriteRelationshipRequestDto.class,
+        ReadRelationshipRequestDto.class,
+        DeleteRelationshipRequestDto.class
 })
 public class RelationshipRequestDto {
 
