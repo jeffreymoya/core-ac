@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,7 +58,15 @@ public class RelationshipController {
             @ApiResponse(responseCode = "200", description = "Successfully read relationships", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ReadRelationshipResponseDto.class)))),
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to read relationships", content =  @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    public CompletableFuture<ResponseEntity<List<ReadRelationshipResponseDto>>> readRelationships(@ModelAttribute ReadRelationshipRequestDto requestParams) {
+    @Parameters({
+            @Parameter(name = "objectType", in = ParameterIn.QUERY, description = "The type of resource that is requested.", required = true),
+            @Parameter(name = "objectId", in = ParameterIn.QUERY, description = "The ID of the resource that is requested."),
+            @Parameter(name = "relation", in = ParameterIn.QUERY, description = "The relation of the subject to the resource."),
+            @Parameter(name = "subjRefObjType", in = ParameterIn.QUERY, description = "Type of the subject reference."),
+            @Parameter(name = "subjRefObjId", in = ParameterIn.QUERY, description = "ID of the subject reference. Requires subjRefObjType."),
+            @Parameter(name = "subjRelation", in = ParameterIn.QUERY, description = "Subject relation. Requires subjRefObjType."),
+    })
+    public CompletableFuture<ResponseEntity<List<ReadRelationshipResponseDto>>> readRelationships(@Valid @ModelAttribute ReadRelationshipRequestDto requestParams) {
         return permissionsService.readRelationships(requestParams.toReadRelationshipsRequest())
                 .thenApply(x -> ResponseEntity.ok(ReadRelationshipResponseDto.fromList(x)));
     }
@@ -100,7 +109,7 @@ public class RelationshipController {
             @ApiResponse(responseCode = "204", description = "Successfully deleted relationships"),
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to delete relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    public CompletableFuture<ResponseEntity<String>> deleteRelationshipsByFilter(@ModelAttribute DeleteRelationshipRequestDto requestParams) {
+    public CompletableFuture<ResponseEntity<String>> deleteRelationshipsByFilter(@Valid @ModelAttribute DeleteRelationshipRequestDto requestParams) {
         return permissionsService.deleteRelationships(requestParams.toDeleteRelationshipsRequest())
                 .thenApply(x -> ResponseEntity.noContent().build());
     }
