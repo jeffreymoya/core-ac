@@ -4,8 +4,11 @@ import com.authzed.api.v1.Core;
 import com.authzed.api.v1.PermissionService;
 import com.google.protobuf.Struct;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
@@ -15,15 +18,33 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class WriteRelationshipRequestDto {
 
+    @Valid
     private List<WriteRelationshipUpdate> updates;
 
     @Getter
+    @Setter
     @SuperBuilder
     @NoArgsConstructor
     private static class WriteRelationshipUpdate extends RelationshipRequestDto {
 
         @Schema(description = "Relationship update operation", example = "OPERATION_CREATE")
         protected Core.RelationshipUpdate.Operation operation = Core.RelationshipUpdate.Operation.OPERATION_CREATE;
+
+        @NotBlank(message = "Object ID cannot be null")
+        @Schema(description = "The ID of the resource that is requested", example = "doc001")
+        protected String objectId;
+
+        @NotBlank(message = "Relation cannot be null")
+        @Schema(description = "The relation of the subject to the resource", example = "doc001")
+        protected String relation;
+
+        @NotBlank(message = "Subject reference object type cannot be null")
+        @Schema(description = "Type of the subject reference", example ="user")
+        protected String subjRefObjType;
+
+        @NotBlank(message = "Subject reference object ID cannot be null")
+        @Schema(description = "ID of the subject reference", example = "john01")
+        protected String subjRefObjId;
 
     }
 

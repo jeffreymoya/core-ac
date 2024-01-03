@@ -47,7 +47,7 @@ public class RelationshipController {
             @ApiResponse(responseCode = "200", description = "Successfully wrote relationships", content = @Content(schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to write relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
-    public CompletableFuture<ResponseEntity<String>> writeRelationships(@RequestBody WriteRelationshipRequestDto requestBody) {
+    public CompletableFuture<ResponseEntity<String>> writeRelationships(@Valid @RequestBody WriteRelationshipRequestDto requestBody) {
         return permissionsService.writeRelationships(requestBody.toWriteRelationshipRequest())
                 .thenApply(x -> ResponseEntity.ok(x.getWrittenAt().getToken()));
     }
