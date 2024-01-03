@@ -25,9 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,53 +64,6 @@ public class PermissionsController {
     @Autowired
     public PermissionsController(PermissionsService permissionsService) {
         this.permissionsService = permissionsService;
-    }
-
-    @PostMapping("/relationships")
-    @Operation(description = "Write Relationships", summary = "Endpoint to write relationships.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully wrote relationships", content = @Content(schema = @Schema(implementation = WriteRelationshipRequestDto.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to write relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
-    })
-    public CompletableFuture<ResponseEntity<String>> writeRelationships(@RequestBody WriteRelationshipRequestDto requestBody) {
-        return permissionsService.writeRelationships(requestBody.toWriteRelationshipRequest())
-                .thenApply(x -> ResponseEntity.ok(x.getWrittenAt().getToken()));
-    }
-
-    @GetMapping("/relationships")
-    @Operation(description = "Read Relationships", summary = "Endpoint to read relationships.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully read relationships", content = @Content(schema = @Schema(implementation = ReadRelationshipResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to read relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
-    })
-    public CompletableFuture<ResponseEntity<List<ReadRelationshipResponseDto>>> readRelationships(@ModelAttribute ReadRelationshipRequestDto requestBody) {
-        return permissionsService.readRelationships(requestBody.toReadRelationshipsRequest())
-                .thenApply(x -> ResponseEntity.ok(ReadRelationshipResponseDto.fromList(x)));
-    }
-
-    @DeleteMapping("/relationships")
-    @Operation(description = "Delete Relationships", summary = "Endpoint to delete relationships by filter.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully deleted relationships", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to delete relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
-    })
-    public CompletableFuture<ResponseEntity<String>> deleteRelationshipsByFilter(@ModelAttribute DeleteRelationshipRequestDto requestBody) {
-        return permissionsService.deleteRelationships(requestBody.toDeleteRelationshipsRequest())
-                .thenApply(x -> ResponseEntity.noContent().build());
-    }
-
-    @DeleteMapping(value = {
-            "/relationships/{objectType}/{objectId}/{relation}/{subjRefObjType}/{subjRefObjId}",
-            "/relationships/{objectType}/{objectId}/{relation}/{subjRefObjType}/{subjRefObjId}/{subjRelation}"
-    })
-    @Operation(description = "Delete Relationship", summary = "Endpoint to delete relationship by path.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully deleted relationships", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to delete relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
-    })
-    public CompletableFuture<ResponseEntity<Void>> deleteRelationshipsByPath(@ModelAttribute DeleteRelationshipRequestDto requestBody) {
-        return permissionsService.deleteRelationships(requestBody.toDeleteRelationshipsRequest())
-                .thenApply(x -> ResponseEntity.noContent().build());
     }
 
     @PostMapping("/permissions/check")
