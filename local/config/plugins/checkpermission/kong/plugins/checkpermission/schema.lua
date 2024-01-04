@@ -23,9 +23,17 @@ local schema = {
             type = "string",
             required = true,
           }},
+          { object_id = {
+            type = "string",
+            required = false,
+          }},
+          { object_type = {
+            type = "string",
+            required = false,
+          }},
           { uri_template = {
             type = "string",
-            required = true,
+            required = false,
           }},
         },
       },

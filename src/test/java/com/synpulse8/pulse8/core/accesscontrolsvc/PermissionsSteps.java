@@ -467,4 +467,21 @@ public class PermissionsSteps {
                 .when()
                 .post("/v1/permissions/route/check");
     }
+
+    @When("a user checks route permissions via {string} with principal {string} and route {string} and object type {string}")
+    public void aUserChecksRoutePermissionsViaWithPrincipalAndRouteAndObjectTypeAndObjectId(String method, String principal, String route, String objectType) {
+        CheckRoutePermissionDto dto = CheckRoutePermissionDto.builder()
+                .route(route)
+                .objectType(objectType)
+                .method(HttpMethodPermission.valueOf(method))
+                .build();
+
+
+        response = given()
+                .header(principalHeader, principal)
+                .contentType("application/json")
+                .body(dto)
+                .when()
+                .post("/v1/permissions/route/check");
+    }
 }

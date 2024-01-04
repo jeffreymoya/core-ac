@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.ApiError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +37,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -83,24 +85,33 @@ public class PermissionsController {
     })
     public CompletableFuture<ResponseEntity<Object>> routeCheck(@Valid @RequestBody CheckRoutePermissionDto requestBody, HttpServletRequest request) throws JsonProcessingException {
         URI uri = UriComponentsBuilder.fromUriString(requestBody.getRoute()).build().toUri();
+        String resourceTypeMatch = "";
+        String resourceIdMatch;
         //TODO: Support query parameters from the URL
-        LOGGER.debug("URI Template: {}", requestBody.getUriTemplate());
-        LOGGER.debug("Route: {}", requestBody.getRoute());
-        UriTemplate uriTemplate = uriTemplateCache.computeIfAbsent(requestBody.getUriTemplate(), UriTemplate::new);
-        Map<String, String> matches = uriTemplate.match(uri.getPath());
-        String objectType = matches.get("resourceType");
-        String objectid = "-"; //default index if there's no resourceId
-
-        if(StringUtils.isNotEmpty(matches.get("resourceId"))) {
-            objectid = StringUtils.removeStart(matches.get("resourceId"), "/");
+        if(!StringUtils.isBlank(requestBody.getUriTemplate())) {
+            UriTemplate uriTemplate = uriTemplateCache.computeIfAbsent(requestBody.getUriTemplate(), UriTemplate::new);
+            Map<String, String> matches = uriTemplate.match(uri.getPath());
+            resourceTypeMatch = matches.get("resourceType");
+            resourceIdMatch = matches.get("resourceId");
+        } else {
+            resourceIdMatch = "";
         }
+
+        String objectType = Optional.ofNullable(requestBody.getObjectType()).orElse(resourceTypeMatch);
+        String objectId = Optional.ofNullable(requestBody.getObjectId()).orElseGet(
+                () -> StringUtils.removeStart(resourceIdMatch, "/"));
+
+        if (StringUtils.isBlank(objectType))
+            throw new P8CException("Object type is required when URI Template does not contain resourceType");
+        if (StringUtils.isBlank(objectId))
+            objectId = "-";
 
         CheckPermissionRequestDto dto = CheckPermissionRequestDto.builder()
                 .permission(requestBody.getMethod().getPermission())
                 .subjRefObjId(request.getHeader(subject))
                 .subjRefObjType(subjectType)
                 .objectType(objectType)
-                .objectId(objectid)
+                .objectId(objectId)
                 .build();
 
         LOGGER.debug("CheckPermissionRequestDto: {}", dto);
