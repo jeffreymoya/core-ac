@@ -2,7 +2,9 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.dto;
 
 import com.authzed.api.v1.PermissionService;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,9 +22,12 @@ import java.util.stream.Stream;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "DTO for representing a relationship request", subTypes = {
         WriteRelationshipRequestDto.class,
+        ReadRelationshipRequestDto.class,
+        DeleteRelationshipRequestDto.class
 })
 public class RelationshipRequestDto {
 
+    @NotBlank(message = "Object type cannot be null")
     @Schema(description = "The type of resource that is requested", example = "policy")
     protected String objectType;
 
@@ -56,9 +61,11 @@ public class RelationshipRequestDto {
         if (StringUtils.isNotEmpty(relation)) relationshipFilterBuilder.setOptionalRelation(relation);
 
         if (Stream.of(subjRefObjType, subjRefObjId, subjRelation).anyMatch(StringUtils::isNotEmpty)) {
-            PermissionService.SubjectFilter.Builder subjectBuilder = PermissionService.SubjectFilter.newBuilder();
-
-            if (StringUtils.isNotEmpty(subjRefObjType)) subjectBuilder.setSubjectType(subjRefObjType);
+            if (StringUtils.isEmpty(subjRefObjType)) {
+                throw new P8CException("Subject reference object type cannot be null if either subject reference object id or subject relation is present");
+            }
+            PermissionService.SubjectFilter.Builder subjectBuilder = PermissionService.SubjectFilter.newBuilder()
+                    .setSubjectType(subjRefObjType);
 
             if (StringUtils.isNotEmpty(subjRefObjId)) subjectBuilder.setOptionalSubjectId(subjRefObjId);
 
