@@ -10,7 +10,6 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckRoutePermissionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
@@ -99,8 +98,7 @@ public class PermissionsSteps {
             RestAssured.port = port;
             RestAssured.defaultParser = Parser.JSON;
             JsonNode testNode = testInput.path("schema").path("write");
-            WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
-            schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
+            schemaService.writeSchema(testNode.asText()).join();
             WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("relationships").get("create").get("initial"), WriteRelationshipRequestDto.class);
             permissionsService.writeRelationships(request.toWriteRelationshipRequest())
                     .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
@@ -377,7 +375,8 @@ public class PermissionsSteps {
                 .path("update")
                 .path(resource)
                 .path(relation);
-        WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
+
+        String requestBody = testNode.asText();
 
         final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
 

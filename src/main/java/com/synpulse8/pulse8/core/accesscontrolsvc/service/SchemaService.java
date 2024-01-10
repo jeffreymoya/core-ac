@@ -11,4 +11,6 @@ public interface SchemaService {
 
     CompletableFuture<SchemaServiceOuterClass.WriteSchemaResponse> writeSchema(SchemaServiceOuterClass.WriteSchemaRequest request);
 
+    CompletableFuture<SchemaServiceOuterClass.WriteSchemaResponse> writeSchema(String schema);
+
 }

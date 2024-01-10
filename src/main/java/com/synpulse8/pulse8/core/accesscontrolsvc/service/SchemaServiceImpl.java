@@ -26,9 +26,16 @@ public class SchemaServiceImpl implements SchemaService {
     }
 
     @Override
+    public CompletableFuture<SchemaServiceOuterClass.WriteSchemaResponse> writeSchema(String schema) {
+        return runAsyncTask(() -> schemaService.writeSchema(SchemaServiceOuterClass.WriteSchemaRequest.newBuilder().setSchema(schema).build()));
+    }
+
+    @Override
     public CompletableFuture<SchemaServiceOuterClass.WriteSchemaResponse> writeSchema(SchemaServiceOuterClass.WriteSchemaRequest request) {
         return runAsyncTask(() -> schemaService.writeSchema(request));
     }
+
+
 
     private <T> CompletableFuture<T> runAsyncTask(Supplier<T> task) {
         return CompletableFuture.supplyAsync(() -> {
