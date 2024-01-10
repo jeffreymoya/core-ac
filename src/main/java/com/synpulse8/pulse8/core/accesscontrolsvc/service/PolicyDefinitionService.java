@@ -1,7 +1,10 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.service;
 
+import com.authzed.api.v1.PermissionService;
 import com.authzed.api.v1.SchemaServiceOuterClass;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.EditRoleDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyMetaData;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
@@ -9,12 +12,14 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.repository.PolicyDefinitionRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class PolicyDefinitionService {
@@ -22,11 +27,13 @@ public class PolicyDefinitionService {
     private final PolicyDefinitionRepository policyDefinitionRepository;
 
     private final SchemaService schemaService;
+    private PermissionsService permissionsService;
 
     @Autowired
-    public PolicyDefinitionService(PolicyDefinitionRepository policyDefinitionRepository, SchemaService schemaService) {
+    public PolicyDefinitionService(PolicyDefinitionRepository policyDefinitionRepository, SchemaService schemaService, PermissionsService permissionsService) {
         this.policyDefinitionRepository = policyDefinitionRepository;
         this.schemaService = schemaService;
+        this.permissionsService = permissionsService;
     }
 
     public CompletableFuture<PolicyMetaData> save(PolicyDefinitionDto policyDefinitionDto) {
@@ -45,6 +52,28 @@ public class PolicyDefinitionService {
                     .build();
             return schemaService.writeSchema(requestBody)
                     .thenApply(v -> policyDefinitionRepository.save(policyDefinitionDto.toMetaData()));
+        });
+    }
+    public CompletableFuture<PolicyDefinitionDto> update(PolicyDefinitionDto policyDefinitionDto) {
+        CompletableFuture<Object> policyDefinitionFuture = getPolicyDefinition(policyDefinitionDto.getName());
+
+        CompletableFuture<String> schemaFuture = fetchSchemaText();
+
+        return schemaFuture.thenCombine(policyDefinitionFuture, (schemaText, object) -> {
+            if (object == null) {
+                throw new P8CException("Policy not found: " + policyDefinitionDto.getName());
+            }
+
+            PolicyDefinitionDto dto = (PolicyDefinitionDto) object;
+            String updatedSchemaText = schemaText.replace(dto.toDefinition(), policyDefinitionDto.toDefinition());
+
+            SchemaServiceOuterClass.WriteSchemaRequest requestBody = SchemaServiceOuterClass.WriteSchemaRequest
+                    .newBuilder()
+                    .setSchema(updatedSchemaText)
+                    .build();
+
+            schemaService.writeSchema(requestBody).join();
+            return dto;
         });
     }
 
@@ -156,6 +185,44 @@ public class PolicyDefinitionService {
                         .permissions(item.getPermissions());
             });
             return builder.build();
+        });
+    }
+
+    public CompletableFuture<EditRoleDto> editRole(EditRoleDto editRoleDto) {
+        ReadRelationshipRequestDto dto = ReadRelationshipRequestDto.builder()
+                .objectType(editRoleDto.getPolicyName())
+                .relation(editRoleDto.getCurrentRoleName())
+                .build();
+
+        CompletableFuture<Iterator<PermissionService.ReadRelationshipsResponse>> relationshipsFuture = permissionsService.readRelationships(dto.toReadRelationshipsRequest());
+        CompletableFuture<Object> policyDefinitionFuture = getPolicyDefinition(editRoleDto.getPolicyName());
+
+        return relationshipsFuture.thenCombine(policyDefinitionFuture, (relationships, object) -> {
+            if (relationships.hasNext()) {
+                throw new P8CException("Relationship exists");
+            }
+            PolicyDefinitionDto policyDefinition = (PolicyDefinitionDto) object;
+
+            boolean roleExistsInPermissions = policyDefinition.getPermissions().parallelStream()
+                    .flatMap(p -> Stream.concat(
+                            Optional.ofNullable(p.getRolesAnd()).orElse(List.of()).stream(),
+                            Optional.ofNullable(p.getRolesOr()).orElse(List.of()).stream()))
+                    .anyMatch(role -> role.equals(editRoleDto.getCurrentRoleName()));
+
+            if (roleExistsInPermissions) {
+                throw new P8CException("Role is assigned to a permission");
+            }
+
+            PolicyRolesAndPermissions.Role originalRole = policyDefinition.getRoles().stream()
+                    .filter(role -> role.getName().equals(editRoleDto.getCurrentRoleName()))
+                    .findFirst()
+                    .orElseThrow(() -> new P8CException("Role not found"));
+            originalRole.setName(editRoleDto.getUpdatedRoleName());
+            originalRole.setSubjects(editRoleDto.getSubjects());
+
+            update(policyDefinition).join();
+
+            return editRoleDto;
         });
     }
 }

@@ -1,5 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.EditRoleDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyMetaData;
@@ -11,6 +12,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -37,5 +40,11 @@ public class RoleController {
     public CompletableFuture<String> savePolicyDefinition(@RequestBody @Valid PolicyDefinitionDto dto) {
         return policyDefinitionService.save(dto).thenApply(PolicyMetaData::getId);
     }
+    @PutMapping("/roles")
+    public CompletableFuture<ResponseEntity<EditRoleDto>> editRole(@RequestBody EditRoleDto editRoleDto) {
+        return policyDefinitionService.editRole(editRoleDto)
+                .thenApply(ResponseEntity::ok);
+    }
+
 }
 
