@@ -75,6 +75,8 @@ public class PermissionsSteps {
 
     private static final AtomicReference<String> deleteRelationshipToken = new AtomicReference<>();;
 
+    private static final AtomicReference<String> deleteRoleToken = new AtomicReference<>();
+
 
     static {
         try {
@@ -319,7 +321,7 @@ public class PermissionsSteps {
                 .path("view")
                 .path(relation)
                 .path("request");
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.GET);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.GET);
         String url = "/v1/relationships" + createRequestQueryString(testNode);
         response = builder.when().get(url);
     }
@@ -331,7 +333,7 @@ public class PermissionsSteps {
                 .path(relation)
                 .path(option);
 
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.DELETE);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.DELETE);
         String url = "/v1/relationships";
         if (option.equals("filter")) {
             url += createRequestQueryString(testNode);
@@ -342,12 +344,21 @@ public class PermissionsSteps {
         response = builder.when().delete(url);
     }
 
-    @Then("the delete response code should be {int}")
-    public void theDeleteResponseCodeShouldBe(int statusCode) throws InterruptedException {
+    @Then("the delete relationship response code should be {int}")
+    public void theDeleteRelationshipResponseCodeShouldBe(int statusCode) throws InterruptedException {
+        theDeleteResponseCodeShouldBe(statusCode, deleteRelationshipToken);
+    }
+
+    @Then("the delete role response code should be {int}")
+    public void theDeleteRoleResponseCodeShouldBe(int statusCode) throws InterruptedException {
+        theDeleteResponseCodeShouldBe(statusCode, deleteRoleToken);
+    }
+
+    public void theDeleteResponseCodeShouldBe(int statusCode, AtomicReference<String> token) throws InterruptedException {
         ValidatableResponse then = response.then();
         then.statusCode(statusCode);
-        deleteRelationshipToken.set(response.getBody().asString());
-        sleep(deleteRelationshipToken);
+        token.set(response.getBody().asString());
+        sleep(token);
     }
 
     @And("the response body should contain the {string} relationship list")
@@ -379,7 +390,7 @@ public class PermissionsSteps {
                 .path(relation);
         WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
 
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.POST);
 
         response = builder
                 .body(requestBody)
@@ -394,7 +405,7 @@ public class PermissionsSteps {
                 .path(relation);
         WriteRelationshipRequestDto requestBody = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
 
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.POST);
 
         response = builder
                 .body(requestBody)
@@ -402,7 +413,7 @@ public class PermissionsSteps {
                 .post("/v1/relationships");
     }
 
-    private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
+    private RequestSpecification createRequestSpecificationBuilder(String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
         final RequestSpecification builder = given();
 
         if (httpMethodPermission.equals(HttpMethodPermission.POST)) {
@@ -466,5 +477,12 @@ public class PermissionsSteps {
                 .body(dto)
                 .when()
                 .post("/v1/permissions/route/check");
+    }
+
+    @When("a user deletes {string} role under {string} policy using principal {string}")
+    public void aUserDeletesRoleWithPrincipal(String roleName, String resourceName, String principal) throws JsonProcessingException, InterruptedException {
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.DELETE);
+        String url = "/v1/roles/" + resourceName + "/" + roleName;
+        response = builder.when().delete(url);
     }
 }
