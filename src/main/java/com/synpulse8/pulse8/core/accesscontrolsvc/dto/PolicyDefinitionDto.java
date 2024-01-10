@@ -23,7 +23,6 @@ public class PolicyDefinitionDto {
     private String description;
     @NotEmpty(message = "Policy roles is mandatory")
     private List<PolicyRolesAndPermissions.Role> roles;
-    @NotEmpty(message = "Policy permissions is mandatory")
     private List<PolicyRolesAndPermissions.Permission> permissions;
     private Map<String, Object> attributes;
     @NotNull(message = "Policy access is mandatory")
@@ -48,13 +47,15 @@ public class PolicyDefinitionDto {
                     .append("\n");
         }
 
-        for (PolicyRolesAndPermissions.Permission permission : this.getPermissions()) {
-            definition.append("\tpermission ")
-                    .append(permission.getName())
-                    .append(" = ")
-                    //TODO: support other operators in permission aside from "+"
-                    .append(String.join(" + ", permission.getRolesOr()))
-                    .append("\n");
+        if(this.getPermissions() != null){
+            for (PolicyRolesAndPermissions.Permission permission : this.getPermissions()) {
+                definition.append("\tpermission ")
+                        .append(permission.getName())
+                        .append(" = ")
+                        //TODO: support other operators in permission aside from "+"
+                        .append(String.join(" + ", permission.getRolesOr()))
+                        .append("\n");
+            }
         }
 
         definition.append("}");
