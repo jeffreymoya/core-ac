@@ -100,6 +100,7 @@
       "adviser": {
         "updates": [
           {
+            "operation": "OPERATION_TOUCH",
             "objectType": "usergroup",
             "objectId": "memberGrp",
             "relation": "direct_member",
@@ -107,6 +108,7 @@
             "subjRefObjId": "adviserA"
           },
           {
+            "operation": "OPERATION_TOUCH",
             "objectType": "organization",
             "objectId": "org1",
             "relation": "direct_member",
@@ -115,6 +117,7 @@
             "subjRelation": "direct_member"
           },
           {
+            "operation": "OPERATION_TOUCH",
             "objectType": "userprofile",
             "objectId": "userProfileAdviserA",
             "relation": "owner",
@@ -122,6 +125,7 @@
             "subjRefObjId": "adviserA"
           },
           {
+            "operation": "OPERATION_TOUCH",
             "objectType": "userprofile",
             "objectId": "userProfileA",
             "relation": "adviser",
@@ -195,6 +199,12 @@
           "relation": "owner",
           "subjRefObjType": "user",
           "subjRefObjId": "customerC"
+        }
+      },
+      "adviser": {
+        "filter": {
+          "objectType": "userprofile",
+          "relation": "adviser"
         }
       }
     }

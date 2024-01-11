@@ -259,27 +259,9 @@ public class PolicyDefinitionService {
                         });
 
                         // Update policy with new roles
-                        String policyText = policy.toDefinition();
-                        CompletableFuture<String> schemaFuture = fetchSchemaText();
-                        return schemaFuture.thenCompose(schemaText -> {
-                            String updatedSchemaText = updateDefinition(schemaText, resourceName, policyText);
-                            SchemaServiceOuterClass.WriteSchemaRequest requestBody = SchemaServiceOuterClass.WriteSchemaRequest
-                                    .newBuilder()
-                                    .setSchema(updatedSchemaText)
-                                    .build();
-                            return schemaService.writeSchema(requestBody)
-                                    .thenCompose(x -> CompletableFuture.completedFuture(null));
-                        });
+                        return update(policy).thenCompose(x -> CompletableFuture.completedFuture(null));
                     });
         });
-    }
-
-    public static String updateDefinition(String schemaText, String keyword, String replacement) {
-        String pattern = "definition\\s+" + keyword + "\\s*\\{[^{}]*\\}";
-        Pattern regex = Pattern.compile(pattern, Pattern.DOTALL);
-        Matcher matcher = regex.matcher(schemaText);
-        if (matcher.find()) return schemaText.replace(matcher.group(), replacement);
-        return schemaText;
     }
 
 }

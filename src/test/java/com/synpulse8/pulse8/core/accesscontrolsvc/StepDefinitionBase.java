@@ -9,6 +9,7 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
 import io.restassured.RestAssured;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,5 +88,13 @@ public class StepDefinitionBase {
             LOGGER.debug("Waiting for write/delete relationship to complete");
             Thread.sleep(pollingIntervalMillis);
         } while (token.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
+    }
+
+    protected void theDeleteResponseCodeShouldBe(int statusCode,AtomicReference<String> token) throws InterruptedException {
+        token.set(null);
+        ValidatableResponse then = response.then();
+        then.statusCode(statusCode);
+        token.set(response.getBody().asString());
+        sleep(token);
     }
 }
