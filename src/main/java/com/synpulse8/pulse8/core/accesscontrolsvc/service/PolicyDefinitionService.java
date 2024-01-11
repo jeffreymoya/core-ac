@@ -2,6 +2,9 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.service;
 
 import com.authzed.api.v1.SchemaServiceOuterClass;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.RelationshipRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.RolesAndPermissionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyMetaData;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
@@ -9,6 +12,7 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.repository.PolicyDefinitionRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -128,7 +132,7 @@ public class PolicyDefinitionService {
         return attributesMap;
     }
 
-    public CompletableFuture<Object> getPolicyDefinition(String resourceName) throws P8CException{
+    public CompletableFuture<PolicyDefinitionDto> getPolicyDefinition(String resourceName) throws P8CException{
 
         Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(resourceName);
 
@@ -154,6 +158,59 @@ public class PolicyDefinitionService {
             policyRolesAndPermissions.ifPresent( item -> {
                 builder.roles(item.getRoles())
                         .permissions(item.getPermissions());
+            });
+            return builder.build();
+        });
+    }
+
+    public CompletableFuture<Object> getRolesAndPermissionOfUser(CompletableFuture<List<ReadRelationshipResponseDto>> relationships,
+                                                                 RelationshipRequestDto requestParams){
+
+        Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(requestParams.getObjectType());
+
+        CompletableFuture<String> schemaFuture = fetchSchemaText();
+        CompletableFuture<List<PolicyRolesAndPermissions>> rolesAndPermissionsFuture = schemaFuture.thenApply(PolicyRolesAndPermissions::fromList);
+
+        return rolesAndPermissionsFuture.thenCombine(relationships, (rolesAndPermissionsList, relationList) ->{
+            List<String> roles = relationList.stream().map( relationship -> relationship.getRelation()).collect(Collectors.toList());
+
+            Optional<PolicyRolesAndPermissions> policyRolesAndPermissions =  rolesAndPermissionsList.stream()
+                    .filter(item -> item.getName().equals(requestParams.getObjectType()))
+                    .findAny();
+
+            RolesAndPermissionDto.RolesAndPermissionDtoBuilder builder = RolesAndPermissionDto.builder();
+            builder.objectType(requestParams.getObjectType());
+            builder.subjRefObjType(requestParams.getSubjRefObjType());
+            builder.subjRefObjId(requestParams.getSubjRefObjId());
+            builder.subjRelation(requestParams.getSubjRelation());
+            builder.roles(roles);
+
+            List<PolicyRolesAndPermissions.Permission> filterPermissions = new ArrayList<>();
+            policyRolesAndPermissions.ifPresent( item -> {
+                item.getPermissions().stream().forEach(
+                        permissions -> {
+                            if(permissions.getRolesOr() != null){
+                                permissions.getRolesOr().stream().forEach(
+                                        permission -> {
+                                            if(roles.contains(permission) && !filterPermissions.contains(permissions)){
+                                                filterPermissions.add(permissions);
+                                            }
+                                        }
+                                );
+                            }
+
+                            if(permissions.getRolesAnd() != null){
+                                permissions.getRolesAnd().stream().forEach(
+                                        permission -> {
+                                            if(roles.contains(permission) && !filterPermissions.contains(permissions)){
+                                                filterPermissions.add(permissions);
+                                            }
+                                        }
+                                );
+                            }
+                        }
+                );
+                builder.permissions(filterPermissions);
             });
             return builder.build();
         });
