@@ -196,12 +196,6 @@
           "subjRefObjType": "user",
           "subjRefObjId": "customerC"
         }
-      },
-      "adviser": {
-        "filter": {
-          "objectType": "userprofile",
-          "relation": "adviser"
-        }
       }
     }
   },
