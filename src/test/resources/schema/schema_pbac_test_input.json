@@ -343,5 +343,23 @@
     "attributes": {
       "department" : "product-manufacturing"
     }
+  },
+  "rolesandpermission" : {
+    "objectType": "userprofile",
+    "subjRefObjType": "user",
+    "subjRefObjId": "customerA",
+    "roles": [
+      "viewer"
+    ],
+    "permissions": [
+      {
+        "name": "view",
+        "rolesOr": [
+          "owner",
+          "viewer"
+        ],
+        "rolesAnd": null
+      }
+    ]
   }
 }

@@ -104,3 +104,9 @@ Feature: Permissions API
     When a user checks route permissions via "GET" with principal "1234" and route "/pulse8/123" and uriTemplate "/{resourceType}{/?}{resourceId:.*}"
     Then the response code should be 403
     And the response should contain "has_permission"
+
+  Scenario: View Roles of User
+    Given the API is available
+    When  user wants to view roles of user with subject reference id "customerA" and subject reference type "user" from object type "userprofile"
+    Then the response code should be 200
+    And the response should contain the list of roles and permissions associated to it
