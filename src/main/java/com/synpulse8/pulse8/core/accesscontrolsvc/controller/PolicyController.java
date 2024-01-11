@@ -43,7 +43,7 @@ public class PolicyController {
     }
 
     @RequestMapping(value = "/policies/{resourceName}", method = RequestMethod.GET)
-    public CompletableFuture<PolicyDefinitionDto> getPolicyDefinition(@PathVariable String resourceName) {
+    public CompletableFuture<Object> getPolicyDefinition(@PathVariable String resourceName) {
         return policyDefinitionService.getPolicyDefinition(resourceName);
     }
 }
