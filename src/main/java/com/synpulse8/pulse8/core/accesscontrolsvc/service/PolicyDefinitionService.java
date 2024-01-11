@@ -2,18 +2,24 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.service;
 
 import com.authzed.api.v1.SchemaServiceOuterClass;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CRelationshipException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyMetaData;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.repository.PolicyDefinitionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,10 +29,13 @@ public class PolicyDefinitionService {
 
     private final SchemaService schemaService;
 
+    private final PermissionsService permissionsService;
+
     @Autowired
-    public PolicyDefinitionService(PolicyDefinitionRepository policyDefinitionRepository, SchemaService schemaService) {
+    public PolicyDefinitionService(PolicyDefinitionRepository policyDefinitionRepository, SchemaService schemaService, PermissionsService permissionsService) {
         this.policyDefinitionRepository = policyDefinitionRepository;
         this.schemaService = schemaService;
+        this.permissionsService = permissionsService;
     }
 
     public CompletableFuture<PolicyMetaData> save(PolicyDefinitionDto policyDefinitionDto) {
@@ -128,7 +137,7 @@ public class PolicyDefinitionService {
         return attributesMap;
     }
 
-    public CompletableFuture<Object> getPolicyDefinition(String resourceName) throws P8CException{
+    public CompletableFuture<PolicyDefinitionDto> getPolicyDefinition(String resourceName) throws P8CException{
 
         Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(resourceName);
 
@@ -158,4 +167,57 @@ public class PolicyDefinitionService {
             return builder.build();
         });
     }
+
+    public CompletableFuture<Void> deletePolicyRole(String resourceName, String roleName) {
+        // Check relationships of the role under the resource
+        ReadRelationshipRequestDto readRelationshipRequestDto = ReadRelationshipRequestDto.builder()
+                .objectType(resourceName)
+                .relation(roleName)
+                .build();
+        return permissionsService.readRelationships(readRelationshipRequestDto.toReadRelationshipsRequest())
+                .thenCompose(result -> {
+                    List<ReadRelationshipResponseDto> relationshipList = ReadRelationshipResponseDto.fromList(result);
+                    if (!relationshipList.isEmpty()) {
+                        return CompletableFuture.failedFuture(new P8CRelationshipException("Cannot delete role `" + roleName + "` in policy `" + resourceName + "`, as a relationship exists under it", Collections.singletonList(relationshipList)));
+                    }
+
+                    return getPolicyDefinition(resourceName).thenCompose(policy -> {
+                        // Delete role on relation
+                        boolean hasDeletedRole = policy.getRoles().removeIf(role -> roleName.equals(role.getName()));
+
+                        if (!hasDeletedRole) {
+                            return CompletableFuture.failedFuture(new P8CException("Role `" + roleName + "` not found under policy `" + resourceName + "`"));
+                        }
+
+                        // Delete roleName on permissions
+                        policy.getPermissions().forEach(permission -> {
+                            Optional.ofNullable(permission.getRolesOr()).ifPresent(rolesOr -> {
+                                rolesOr.remove(roleName);
+                            });
+                        });
+
+                        // Update policy with new roles
+                        String policyText = policy.toDefinition();
+                        CompletableFuture<String> schemaFuture = fetchSchemaText();
+                        return schemaFuture.thenCompose(schemaText -> {
+                            String updatedSchemaText = updateDefinition(schemaText, resourceName, policyText);
+                            SchemaServiceOuterClass.WriteSchemaRequest requestBody = SchemaServiceOuterClass.WriteSchemaRequest
+                                    .newBuilder()
+                                    .setSchema(updatedSchemaText)
+                                    .build();
+                            return schemaService.writeSchema(requestBody)
+                                    .thenCompose(x -> CompletableFuture.completedFuture(null));
+                        });
+                    });
+        });
+    }
+
+    public static String updateDefinition(String schemaText, String keyword, String replacement) {
+        String pattern = "definition\\s+" + keyword + "\\s*\\{[^{}]*\\}";
+        Pattern regex = Pattern.compile(pattern, Pattern.DOTALL);
+        Matcher matcher = regex.matcher(schemaText);
+        if (matcher.find()) return schemaText.replace(matcher.group(), replacement);
+        return schemaText;
+    }
+
 }
