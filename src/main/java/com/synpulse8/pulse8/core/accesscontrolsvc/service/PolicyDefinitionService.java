@@ -240,7 +240,7 @@ public class PolicyDefinitionService {
                 .thenCompose(result -> {
                     List<ReadRelationshipResponseDto> relationshipList = ReadRelationshipResponseDto.fromList(result);
                     if (!relationshipList.isEmpty()) {
-                        return CompletableFuture.failedFuture(new P8CRelationshipException("Cannot delete role `" + roleName + "` in policy `" + resourceName + "`, as a relationship exists under it", Collections.singletonList(relationshipList)));
+                        return CompletableFuture.failedFuture(new P8CRelationshipException("Cannot delete role `" + roleName + "` in policy `" + resourceName + "`, as a relationship exists under it", relationshipList));
                     }
 
                     return getPolicyDefinition(resourceName).thenCompose(policy -> {
