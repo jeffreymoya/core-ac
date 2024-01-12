@@ -43,6 +43,7 @@
     relation policy_manager : user | usergroup#security_admin | usergroup#security_administrator
     relation policy_member : user | usergroup#member | usergroup#system_administrator | usergroup#system_admin | usergroup#direct_member
     relation policy_creator : user | usergroup#security_admin | usergroup#security_administrator
+    relation policy_viewer : usergroup#member
 
     permission create = policy_creator + policy_manager
     permission view = policy_creator + policy_manager + policy_member

@@ -4,12 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.AttributeDefinitionDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckPermissionRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.CheckRoutePermissionDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.enums.HttpMethodPermission;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
@@ -20,92 +15,36 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.restassured.RestAssured;
-import io.restassured.parsing.Parser;
-import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasLength;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class PermissionsSteps {
+public class PermissionsSteps extends StepDefinitionBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PermissionsSteps.class);
 
-    @LocalServerPort
-    private int port;
-
-    @Value("${p8c.security.principal-header}")
-    private String principalHeader;
-
-    private Response response;
-
-    private static JsonNode testInput;
-
-    private SchemaService schemaService;
-
-    private PermissionsService permissionsService;
-
-    private ObjectMapper objectMapper;
-
-    private static boolean initialSetup = true;
-
-    private static final AtomicReference<String> writeRelationshipToken = new AtomicReference<>();;
-
-    private static final AtomicReference<String> deleteRelationshipToken = new AtomicReference<>();;
-
-
-    static {
-        try {
-            ClassPathResource resource = new ClassPathResource("schema/schema_pbac_test_input.json");
-            File file = resource.getFile();
-            testInput = new ObjectMapper().readTree(file);
-        } catch (IOException e) {
-            LOGGER.error("Error while reading schema file", e);
-        }
-    }
-
     public PermissionsSteps(SchemaService schemaService, PermissionsService permissionsService, ObjectMapper objectMapper) {
-        this.schemaService = schemaService;
-        this.permissionsService = permissionsService;
-        this.objectMapper = objectMapper;
+        super(schemaService, permissionsService, objectMapper);
     }
 
     @Before
     public void setUp() throws InterruptedException {
-        if(initialSetup) {
-            RestAssured.baseURI = "http://localhost";
-            RestAssured.port = port;
-            RestAssured.defaultParser = Parser.JSON;
-            JsonNode testNode = testInput.path("schema").path("write");
-            schemaService.writeSchema(testNode.asText()).join();
-            WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("relationships").get("create").get("initial"), WriteRelationshipRequestDto.class);
-            permissionsService.writeRelationships(request.toWriteRelationshipRequest())
-                    .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
-            sleep(writeRelationshipToken);
-            initialSetup = false;
-        }
+        super.setUp();
     }
+
     @Given("the API is available")
     public void theApiIsAvailable() {
         assertTrue(PermissionsIntegrationTest.spicedb.isRunning());
@@ -340,12 +279,9 @@ public class PermissionsSteps {
         response = builder.when().delete(url);
     }
 
-    @Then("the delete response code should be {int}")
-    public void theDeleteResponseCodeShouldBe(int statusCode) throws InterruptedException {
-        ValidatableResponse then = response.then();
-        then.statusCode(statusCode);
-        deleteRelationshipToken.set(response.getBody().asString());
-        sleep(deleteRelationshipToken);
+    @Then("the delete relationship response code should be {int}")
+    public void theDeleteRelationshipResponseCodeShouldBe(int statusCode) throws InterruptedException {
+        theDeleteResponseCodeShouldBe(statusCode, deleteRelationshipToken);
     }
 
     @And("the response body should contain the {string} relationship list")
@@ -376,12 +312,10 @@ public class PermissionsSteps {
                 .path(resource)
                 .path(relation);
 
-        String requestBody = testNode.asText();
-
         final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
 
         response = builder
-                .body(requestBody)
+                .body(testNode.asText())
                 .when()
                 .post("/v1/schema");
     }
@@ -420,16 +354,6 @@ public class PermissionsSteps {
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
         queryParams.forEach(builder::queryParam);
         return builder.build().encode().toUriString();
-    }
-
-    private void sleep(AtomicReference<String> token) throws InterruptedException {
-        long timeoutMillis = 10000; // 10 seconds
-        long pollingIntervalMillis = 3000; // 3 second
-        long startTime = System.currentTimeMillis();
-        do {
-            LOGGER.debug("Waiting for write/delete relationship to complete");
-            Thread.sleep(pollingIntervalMillis);
-        } while (token.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
     }
 
 
