@@ -478,5 +478,7 @@ public class PermissionsSteps {
     public void theResponseContainListOfRolesAndPermissionAssociated(){
         JsonNode rolesAndPermissions = testInput.path("rolesandpermission");
         RolesAndPermissionDto rolesAndPermissionDto = objectMapper.convertValue(rolesAndPermissions, RolesAndPermissionDto.class);
+        rolesAndPermissionDto.getRoles().stream().forEach( entry ->
+                assertEquals(entry, rolesAndPermissionDto.getRoles().get(0)));
     }
 }

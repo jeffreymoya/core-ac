@@ -189,30 +189,39 @@ public class PolicyDefinitionService {
             policyRolesAndPermissions.ifPresent( item -> {
                 item.getPermissions().stream().forEach(
                         permissions -> {
-                            if(permissions.getRolesOr() != null){
-                                permissions.getRolesOr().stream().forEach(
-                                        permission -> {
-                                            if(roles.contains(permission) && !filterPermissions.contains(permissions)){
-                                                filterPermissions.add(permissions);
-                                            }
-                                        }
-                                );
-                            }
-
-                            if(permissions.getRolesAnd() != null){
-                                permissions.getRolesAnd().stream().forEach(
-                                        permission -> {
-                                            if(roles.contains(permission) && !filterPermissions.contains(permissions)){
-                                                filterPermissions.add(permissions);
-                                            }
-                                        }
-                                );
-                            }
+                            permissionChecker(permissions,roles,filterPermissions);
                         }
                 );
                 builder.permissions(filterPermissions);
             });
             return builder.build();
         });
+    }
+
+    public List<PolicyRolesAndPermissions.Permission> permissionChecker(PolicyRolesAndPermissions.Permission permissions, List<String> roles, List<PolicyRolesAndPermissions.Permission> filteredPermissions){
+
+        if(permissions.getRolesOr() != null){
+            for(String role : roles){
+                permissions.getRolesOr().stream().forEach(
+                        permission -> {
+                            if(permission.contains(role) && !filteredPermissions.contains(permissions)){
+                                filteredPermissions.add(permissions);
+                            }
+                        }
+                );
+            }
+        }
+
+        if(permissions.getRolesAnd() != null){
+            permissions.getRolesAnd().stream().forEach(
+                    permission -> {
+                        if(roles.contains(permission) && !filteredPermissions.contains(permissions)){
+                            filteredPermissions.add(permissions);
+                        }
+                    }
+            );
+        }
+
+        return filteredPermissions;
     }
 }
