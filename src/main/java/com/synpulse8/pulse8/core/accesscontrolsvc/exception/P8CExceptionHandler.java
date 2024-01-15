@@ -46,4 +46,10 @@ public class P8CExceptionHandler {
     public ResponseEntity<Object> handleP8cExceptions(P8CException ex) {
         return new ResponseEntity<>(new P8CError(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(P8CRelationshipException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleP8cRelationshipExceptions(P8CRelationshipException ex) {
+        return new ResponseEntity<>(new P8CRelationshipError(ex.getMessage(), ex.getRelationships()), HttpStatus.BAD_REQUEST);
+    }
 }

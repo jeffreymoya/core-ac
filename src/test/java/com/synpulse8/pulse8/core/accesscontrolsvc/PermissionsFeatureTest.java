@@ -18,7 +18,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-        features = "src/test/resources/permissions.feature",
+        features = "src/test/resources",
         glue = "com.synpulse8.pulse8.core.accesscontrolsvc",
         plugin = {"pretty", "json:target/cucumber-reports/cucumber.json"},
         publish = true
