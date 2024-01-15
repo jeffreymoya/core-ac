@@ -1,5 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.EditRoleDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
@@ -21,6 +22,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +49,22 @@ public class RoleController {
     @RequestMapping(value = "/roles", method = RequestMethod.POST)
     public CompletableFuture<String> savePolicyDefinition(@RequestBody @Valid PolicyDefinitionDto dto) {
         return policyDefinitionService.save(dto).thenApply(PolicyMetaData::getId);
+    }
+    @PutMapping("/roles")
+    public CompletableFuture<ResponseEntity<EditRoleDto>> editRole(@RequestBody EditRoleDto editRoleDto) {
+        return policyDefinitionService.editRole(editRoleDto)
+                .thenApply(ResponseEntity::ok);
+    }
+
+    @RequestMapping(value = "/roles/{resourceName}/{roleName}", method = RequestMethod.DELETE)
+    @Operation(description = "Delete Role", summary = "Endpoint to delete role.")
+    @Parameters({
+            @Parameter(name = "resourceName", in = ParameterIn.PATH, description = "The name of the resource."),
+            @Parameter(name = "roleName", in = ParameterIn.PATH, description = "The name of the role.")
+    })
+    public CompletableFuture<ResponseEntity<Void>> deletePolicyRole(@PathVariable String resourceName, @PathVariable String roleName) {
+        return policyDefinitionService.deletePolicyRole(resourceName, roleName)
+                .thenApply(x -> ResponseEntity.noContent().build());
     }
 
     @GetMapping("/roles")

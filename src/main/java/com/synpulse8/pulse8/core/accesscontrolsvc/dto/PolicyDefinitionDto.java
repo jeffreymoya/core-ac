@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.Map;
 import static com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions.CAVEAT_ATTRIBUTES_MATCH;
 
 @Getter
+@Setter
 @Builder
 public class PolicyDefinitionDto {
     @NotBlank(message = "Policy name is mandatory")
@@ -42,7 +44,7 @@ public class PolicyDefinitionDto {
         for (PolicyRolesAndPermissions.Role role : this.getRoles()) {
             definition.append("\trelation ")
                     .append(role.getName())
-                    .append(" : ")
+                    .append(": ")
                     .append(String.join(" | ", role.getSubjects().stream().map(s -> s + attributesMatch).toList()))
                     .append("\n");
         }
