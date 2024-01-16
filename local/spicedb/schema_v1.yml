@@ -1,0 +1,22 @@
+/** schema for pulse8 */
+/** user represents a user */
+definition user {}
+
+definition echo {
+    relation viewer: user | user:*
+    permission view = viewer
+}
+
+definition policy01 {
+    relation administrator: policy01#administrator
+    relation member: user
+    permission admin = administrator
+    permission view = administrator
+    permission update = administrator
+    permission delete = administrator
+    permission create = administrator
+}
+
+caveat attributes_match(expected map<any>, provided map<any>) {
+    expected.isSubtreeOf(provided)
+}
