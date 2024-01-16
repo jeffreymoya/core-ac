@@ -330,4 +330,51 @@ public class PolicyDefinitionService {
 
         return filteredPermissions;
     }
+
+
+    /**Add new roles/permission on existing definition**/
+    public CompletableFuture<String> updateExistingDefinitionWithNewRolesAndPermission(PolicyDefinitionDto policyDefinitionDto){
+
+        return getPolicyDefinition(policyDefinitionDto.getName()).thenCompose(policy -> {
+            List<String> roles = policy.getRoles().stream().map( role -> role.getName()).collect(Collectors.toList());
+            List<String> permissions = policy.getPermissions().stream().map(
+                    permission ->  permission.getName()).collect(Collectors.toList());
+
+            if(policyDefinitionDto.getRoles() != null && !policyDefinitionDto.getRoles().isEmpty()
+                    && policy.getRoles() != null && !policy.getRoles().isEmpty()){
+                policyDefinitionDto.getRoles().stream().forEach( role -> {
+                    if(!roles.contains(role.getName())){
+                        policy.getRoles().add(role);
+                    }
+                });
+            }
+
+            if(policyDefinitionDto.getPermissions() != null && !policyDefinitionDto.getPermissions().isEmpty()){
+                if(policy.getPermissions() == null && policy.getPermissions().isEmpty()){
+                    policy.setPermissions(policyDefinitionDto.getPermissions());
+                }else {
+                    policyDefinitionDto.getPermissions().stream().forEach(permission -> {
+                        if(!permissions.contains(permission.getName())) {
+                            policy.getPermissions().add(permission);
+                        }
+                    });
+                }
+            }
+
+            // Update policy with new roles
+            return update(policy).thenCompose(x -> CompletableFuture.completedFuture("OK"));
+        });
+    }
+
+    public CompletableFuture<String> saveRoleDefinition(PolicyDefinitionDto dto) {
+
+        Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(dto.getName());
+
+        if(policyMetaData.isPresent()){
+            return updateExistingDefinitionWithNewRolesAndPermission(dto);
+        }
+
+        return save(dto).thenApply(PolicyMetaData::getId);
+
+    }
 }
