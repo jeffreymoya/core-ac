@@ -28,6 +28,12 @@ do
     validate_env_var "$var"
 done
 
+if ping -c 1 -W 1 "$POSTGRES_HOST" > /dev/null; then
+    log "Host $1 is accessible"
+else
+    error_exit "Host $1 is not accessible"
+fi
+
 postgres_uri="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable"
 
 printStep "Migrating Postgres datastore to SpiceDB"

@@ -12,6 +12,11 @@ services:
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         POSTGRES_DB: ${POSTGRES_DB}
     command: postgres -c track_commit_timestamp=on
+    healthcheck:
+      test: /usr/bin/pg_isready
+      interval: 5s
+      timeout: 10s
+      retries: 120
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
   spicedb:
@@ -35,7 +40,8 @@ services:
     environment:
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:50051 -Xms256m -Xmx4G"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
   pulse8-core-access-control:
     container_name: pulse8-core-access-control
     image: pulse8-core-access-control:latest
@@ -65,6 +71,7 @@ services:
       KONG_DECLARATIVE_CONFIG: "/opt/kong/kong.yaml"
       KONG_LUA_PACKAGE_PATH: /opt/kong/plugins/checkpermission/?.lua;;
       KONG_PLUGINS: bundled,checkpermission
+      KONG_LOG_LEVEL: debug
     volumes:
       - ./certs:/certs
       - ./config:/opt/kong

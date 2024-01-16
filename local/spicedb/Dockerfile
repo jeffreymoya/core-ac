@@ -19,7 +19,7 @@ ENV SPICEDB_KEY=$spicedb_key
 RUN apt update && apt upgrade -y
 
 # jq used for parsing relationships json
-RUN apt install -y jq
+RUN apt install -y jq iputils-ping
 
 RUN apt install -y curl ca-certificates gpg && \
     curl https://apt.fury.io/authzed/gpg.key | apt-key add - && \
