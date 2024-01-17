@@ -391,23 +391,4 @@ public class PermissionsSteps extends StepDefinitionBase {
                 .post("/v1/permissions/route/check");
     }
 
-
-    @When("user wants to view roles of user with subject reference id {string} and subject reference type {string} from object type {string}")
-    public void userWantsToViewRolesOfUserWithSubjectReferenceIdAndSubjectReferenceTypeFromObjectType(String subjRefObjId, String subjRefObjType, String objectType) {
-        response = given()
-                .header(principalHeader, "test-user")
-                .param("objectType", objectType)
-                .param("subjRefObjId", subjRefObjId)
-                .param("subjRefObjType", subjRefObjType)
-                .when()
-                .get("/v1/roles");
-    }
-
-    @Then("the response should contain the list of roles and permissions associated to it")
-    public void theResponseContainListOfRolesAndPermissionAssociated(){
-        JsonNode rolesAndPermissions = testInput.path("rolesandpermission");
-        RolesAndPermissionDto rolesAndPermissionDto = objectMapper.convertValue(rolesAndPermissions, RolesAndPermissionDto.class);
-        rolesAndPermissionDto.getRoles().stream().forEach( entry ->
-                assertEquals(entry, rolesAndPermissionDto.getRoles().get(0)));
-    }
 }
