@@ -65,11 +65,17 @@ public class RoleSteps extends StepDefinitionBase {
     }
 
 
-    @Given("the {string} role is written in the resource {string} and has relationships")
-    public void aRoleIsWrittenAndHasRelationships(String roleName, String resourceName) throws InterruptedException {
+    @Given("the {string} role is written in the resource {string}")
+    public void aRoleIsWritten(String roleName, String resourceName) throws InterruptedException {
         JsonNode testNode = testInput.path("schema").path("update").path(resourceName).path(roleName);
         WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
         schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
+        sleep(updateSchemaToken);
+    }
+
+    @Given("the {string} role is written in the resource {string} and has relationships")
+    public void aRoleIsWrittenAndHasRelationships(String roleName, String resourceName) throws InterruptedException {
+        aRoleIsWritten(roleName, resourceName);
         WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("relationships").get("create").get(roleName), WriteRelationshipRequestDto.class);
         permissionsService.writeRelationships(request.toWriteRelationshipRequest())
                 .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));

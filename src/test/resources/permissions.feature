@@ -79,8 +79,7 @@ Feature: Permissions API
     Then the response code should be 200
     When a user writes "adviser" relationship to the resource with principal "1234"
     Then the response code should be 200
-    When a user checks PBAC "update" permission of "adviserA" with principal "1234"
-    Then the response code should be 200
+    And the user "adviserA" should have "update" permission to the related resource
 
   Scenario: Get Definition from Existing Policy
     Given the API is available
