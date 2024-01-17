@@ -257,9 +257,8 @@ public class PolicyDefinitionService {
 
                         // Delete roleName on permissions
                         policy.getPermissions().forEach(permission -> {
-                            Optional.ofNullable(permission.getRolesOr()).ifPresent(rolesOr -> {
-                                rolesOr.remove(roleName);
-                            });
+                            // TODO: support other role list and operators in permission aside from "+" and "->"
+                            Optional.ofNullable(permission.getRolesOr()).ifPresent(rolesOr -> removeRole(rolesOr, roleName, permission.getName()));
                         });
 
                         // Update policy with new roles
@@ -267,7 +266,6 @@ public class PolicyDefinitionService {
                     });
         });
     }
-
 
     public CompletableFuture<Object> getRolesAndPermissionOfUser(CompletableFuture<List<ReadRelationshipResponseDto>> relationships,
                                                                  RelationshipRequestDto requestParams){
@@ -377,4 +375,10 @@ public class PolicyDefinitionService {
         return save(dto).thenApply(PolicyMetaData::getId);
 
     }
+
+    private void removeRole(List<String> list, String roleName, String permissionName) {
+        boolean isRoleRemoved = list.removeIf(role -> role.equals(roleName) || role.contains(roleName + "->"));
+        if (isRoleRemoved && list.isEmpty()) throw new P8CException("Roles for permission '" + permissionName + "' cannot be empty");
+    }
+
 }
