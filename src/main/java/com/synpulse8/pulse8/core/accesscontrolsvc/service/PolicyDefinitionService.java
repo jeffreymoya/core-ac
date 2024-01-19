@@ -364,15 +364,24 @@ public class PolicyDefinitionService {
         });
     }
 
-    public CompletableFuture<String> saveRoleDefinition(PolicyDefinitionDto dto) {
+    public CompletableFuture<Object> saveRoleDefinition(PolicyDefinitionDto dto) {
 
         Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(dto.getName());
 
-        if(policyMetaData.isPresent()){
-            return updateExistingDefinitionWithNewRolesAndPermission(dto);
-        }
+        CompletableFuture<String> schemaFuture = fetchSchemaText();
+        CompletableFuture<List<PolicyRolesAndPermissions>> rolesAndPermissionsFuture = schemaFuture.thenApply(PolicyRolesAndPermissions::fromList);
 
-        return save(dto).thenApply(PolicyMetaData::getId);
+        return rolesAndPermissionsFuture.thenApply(rolesAndPermission -> {
+            Optional<PolicyRolesAndPermissions> policyRolesAndPermissions =  rolesAndPermission.stream()
+                    .filter(item -> item.getName().equals(dto.getName()))
+                    .findAny();
+
+            if (policyMetaData.isEmpty() && policyRolesAndPermissions.isEmpty()) {
+                return save(dto).thenApply(PolicyMetaData::getId);
+            }
+
+            return updateExistingDefinitionWithNewRolesAndPermission(dto);
+        });
 
     }
 

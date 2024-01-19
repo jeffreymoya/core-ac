@@ -47,7 +47,7 @@ public class RoleController {
 
     /**Note: definition for roles will be added in list of policies as well**/
     @RequestMapping(value = "/roles", method = RequestMethod.POST)
-    public CompletableFuture<String> savePolicyDefinition(@RequestBody @Valid PolicyDefinitionDto dto) {
+    public CompletableFuture<Object> savePolicyDefinition(@RequestBody @Valid PolicyDefinitionDto dto) {
             return policyDefinitionService.saveRoleDefinition(dto);
     }
     @PutMapping("/roles")
