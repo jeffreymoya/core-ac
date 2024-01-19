@@ -25,3 +25,9 @@ Feature: Role API
       |roleName                | resource      | userId        |
       |adviser                 | userprofile   | adviserA      |
       |system_administrator    | userprofile   | systemAdmin1  |
+
+  Scenario: View Roles of User
+    Given the API is available
+    When  user wants to view roles of user with subject reference id "customerA" and subject reference type "user" from object type "userprofile"
+    Then the response code should be HTTP 200
+    And the response should contain the list of roles and permissions associated to it

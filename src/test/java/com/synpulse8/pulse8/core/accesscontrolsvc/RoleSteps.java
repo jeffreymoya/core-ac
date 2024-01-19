@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.EditRoleDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.RolesAndPermissionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
@@ -21,6 +22,7 @@ import java.util.Collections;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 
 public class RoleSteps extends StepDefinitionBase {
 
@@ -92,4 +94,28 @@ public class RoleSteps extends StepDefinitionBase {
                 .delete(url);
     }
 
+    @When("user wants to view roles of user with subject reference id {string} and subject reference type {string} from object type {string}")
+    public void userWantsToViewRolesOfUserWithSubjectReferenceIdAndSubjectReferenceTypeFromObjectType(String subjRefObjId, String subjRefObjType, String objectType) {
+        response = given()
+                .header(principalHeader, "test-user")
+                .param("objectType", objectType)
+                .param("subjRefObjId", subjRefObjId)
+                .param("subjRefObjType", subjRefObjType)
+                .when()
+                .get("/v1/roles");
+    }
+
+    @Then("the response should contain the list of roles and permissions associated to it")
+    public void theResponseContainListOfRolesAndPermissionAssociated(){
+        JsonNode rolesAndPermissions = testInput.path("rolesandpermission");
+        RolesAndPermissionDto rolesAndPermissionDto = objectMapper.convertValue(rolesAndPermissions, RolesAndPermissionDto.class);
+        rolesAndPermissionDto.getRoles().stream().forEach( entry ->
+                assertEquals(entry, rolesAndPermissionDto.getRoles().get(0)));
+    }
+
+    @Then("the response code should be HTTP {int}")
+    public void theResponseCodeShouldBeHTTP(int statusCode) {
+        ValidatableResponse then = response.then();
+        then.statusCode(statusCode);
+    }
 }

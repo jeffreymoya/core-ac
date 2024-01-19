@@ -4,6 +4,9 @@ import com.authzed.api.v1.PermissionService;
 import com.authzed.api.v1.SchemaServiceOuterClass;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.EditRoleDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.PolicyDefinitionDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.RelationshipRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.RolesAndPermissionDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
@@ -14,6 +17,7 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.repository.PolicyDefinitionRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Collections;
 import java.util.List;
@@ -261,6 +265,124 @@ public class PolicyDefinitionService {
                         return update(policy).thenCompose(x -> CompletableFuture.completedFuture(null));
                     });
         });
+    }
+
+    public CompletableFuture<Object> getRolesAndPermissionOfUser(CompletableFuture<List<ReadRelationshipResponseDto>> relationships,
+                                                                 RelationshipRequestDto requestParams){
+
+        Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(requestParams.getObjectType());
+
+        CompletableFuture<String> schemaFuture = fetchSchemaText();
+        CompletableFuture<List<PolicyRolesAndPermissions>> rolesAndPermissionsFuture = schemaFuture.thenApply(PolicyRolesAndPermissions::fromList);
+
+        return rolesAndPermissionsFuture.thenCombine(relationships, (rolesAndPermissionsList, relationList) ->{
+            List<String> roles = relationList.stream().map( relationship -> relationship.getRelation()).collect(Collectors.toList());
+
+            Optional<PolicyRolesAndPermissions> policyRolesAndPermissions =  rolesAndPermissionsList.stream()
+                    .filter(item -> item.getName().equals(requestParams.getObjectType()))
+                    .findAny();
+
+            RolesAndPermissionDto.RolesAndPermissionDtoBuilder builder = RolesAndPermissionDto.builder();
+            builder.objectType(requestParams.getObjectType());
+            builder.subjRefObjType(requestParams.getSubjRefObjType());
+            builder.subjRefObjId(requestParams.getSubjRefObjId());
+            builder.subjRelation(requestParams.getSubjRelation());
+            builder.roles(roles);
+
+            List<PolicyRolesAndPermissions.Permission> filterPermissions = new ArrayList<>();
+            policyRolesAndPermissions.ifPresent( item -> {
+                item.getPermissions().stream().forEach(
+                        permissions -> {
+                            permissionChecker(permissions,roles,filterPermissions);
+                        }
+                );
+                builder.permissions(filterPermissions);
+            });
+            return builder.build();
+        });
+    }
+
+    public List<PolicyRolesAndPermissions.Permission> permissionChecker(PolicyRolesAndPermissions.Permission permissions, List<String> roles, List<PolicyRolesAndPermissions.Permission> filteredPermissions){
+
+        if(permissions.getRolesOr() != null){
+            for(String role : roles){
+                permissions.getRolesOr().stream().forEach(
+                        permission -> {
+                            if(permission.contains(role) && !filteredPermissions.contains(permissions)){
+                                filteredPermissions.add(permissions);
+                            }
+                        }
+                );
+            }
+        }
+
+        if(permissions.getRolesAnd() != null){
+            permissions.getRolesAnd().stream().forEach(
+                    permission -> {
+                        if(roles.contains(permission) && !filteredPermissions.contains(permissions)){
+                            filteredPermissions.add(permissions);
+                        }
+                    }
+            );
+        }
+
+        return filteredPermissions;
+    }
+
+
+    /**Add new roles/permission on existing definition**/
+    public CompletableFuture<String> updateExistingDefinitionWithNewRolesAndPermission(PolicyDefinitionDto policyDefinitionDto){
+
+        return getPolicyDefinition(policyDefinitionDto.getName()).thenCompose(policy -> {
+            List<String> roles = policy.getRoles().stream().map( role -> role.getName()).collect(Collectors.toList());
+            List<String> permissions = policy.getPermissions().stream().map(
+                    permission ->  permission.getName()).collect(Collectors.toList());
+
+            if(policyDefinitionDto.getRoles() != null && !policyDefinitionDto.getRoles().isEmpty()
+                    && policy.getRoles() != null && !policy.getRoles().isEmpty()){
+                policyDefinitionDto.getRoles().stream().forEach( role -> {
+                    if(!roles.contains(role.getName())){
+                        policy.getRoles().add(role);
+                    }
+                });
+            }
+
+            if(policyDefinitionDto.getPermissions() != null && !policyDefinitionDto.getPermissions().isEmpty()){
+                if(policy.getPermissions() == null && policy.getPermissions().isEmpty()){
+                    policy.setPermissions(policyDefinitionDto.getPermissions());
+                }else {
+                    policyDefinitionDto.getPermissions().stream().forEach(permission -> {
+                        if(!permissions.contains(permission.getName())) {
+                            policy.getPermissions().add(permission);
+                        }
+                    });
+                }
+            }
+
+            // Update policy with new roles
+            return update(policy).thenCompose(x -> CompletableFuture.completedFuture("OK"));
+        });
+    }
+
+    public CompletableFuture<Object> saveRoleDefinition(PolicyDefinitionDto dto) {
+
+        Optional<PolicyMetaData> policyMetaData = policyDefinitionRepository.findByName(dto.getName());
+
+        CompletableFuture<String> schemaFuture = fetchSchemaText();
+        CompletableFuture<List<PolicyRolesAndPermissions>> rolesAndPermissionsFuture = schemaFuture.thenApply(PolicyRolesAndPermissions::fromList);
+
+        return rolesAndPermissionsFuture.thenApply(rolesAndPermission -> {
+            Optional<PolicyRolesAndPermissions> policyRolesAndPermissions =  rolesAndPermission.stream()
+                    .filter(item -> item.getName().equals(dto.getName()))
+                    .findAny();
+
+            if (policyMetaData.isEmpty() && policyRolesAndPermissions.isEmpty()) {
+                return save(dto).thenApply(PolicyMetaData::getId);
+            }
+
+            return updateExistingDefinitionWithNewRolesAndPermission(dto);
+        });
+
     }
 
     private void removeRole(List<String> list, String roleName, String permissionName) {
