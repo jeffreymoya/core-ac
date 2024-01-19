@@ -390,4 +390,5 @@ public class PermissionsSteps extends StepDefinitionBase {
                 .when()
                 .post("/v1/permissions/route/check");
     }
+
 }
