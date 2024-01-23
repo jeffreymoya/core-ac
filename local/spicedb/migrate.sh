@@ -8,7 +8,7 @@ usage() {
     echo "   --endpoint, -e        SpiceDB Endpoint"
     echo "   --key, -k             SpiceDB pre-shared key"
     echo "   --keyring, -g         Zed Keyring password"
-    echo "   --rollback            Rollback to the latest migration"
+    echo "   --rollback            Rollback to the latest backup"
     echo "   --help, -h            Display this help message"
     exit 1
 }
@@ -44,22 +44,22 @@ zed context set dev "$endpoint" "$key" --insecure || { echo "Zed Error"; exit 1;
 
 schema=$(zed schema read 2>&1) || { echo "Unable to connect to SpiceDB server. Exiting.."; exit 1; }
 
-# Create migrations directory if it doesn't exist
-mkdir -p migrations
+# Create backups directory if it doesn't exist
+mkdir -p backups
 
 if [ "$rollback" = true ]; then
-    latest_migration=$(ls -t migrations/spicedb_* | head -1)
-    echo "Rolling back to $latest_migration..."
-    zed restore "$latest_migration"
+    latest_backup=$(ls -t backups/spicedb_* | head -1)
+    echo "Rolling back to $latest_backup..."
+    zed restore "$latest_backup"
     if [ $? -ne 0 ]; then
         echo "zed rollback failed"
         exit 1
     fi
-    rm "$latest_migration"
+    rm "$latest_backup"
 else
     current_date_time=$(date '+%Y%m%d%H%M%S')
 
-    zed backup migrations/spicedb_"$current_date_time"
+    zed backup backups/spicedb_"$current_date_time"
     if [ $? -ne 0 ]; then
         echo "Zed backup failed. Exiting.."
         exit 1
