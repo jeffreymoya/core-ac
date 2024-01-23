@@ -14,6 +14,18 @@ Feature: Role API
     When a user deletes "adviser" role under "userprofile" policy using principal "1234"
     Then the response code should be 204
 
+  Scenario Outline: Assign Role to User
+    Given the API is available
+    And the "adviser" role is written in the resource "<resource>"
+    When a user writes "<roleName>" relationship to the resource with principal "1234"
+    Then the write relationship response code should be 200
+    And the user "<userId>" should have "update" permission to the related resource
+
+    Examples:
+      |roleName                | resource      | userId        |
+      |adviser                 | userprofile   | adviserA      |
+      |system_administrator    | userprofile   | systemAdmin1  |
+
   Scenario: View Roles of User
     Given the API is available
     When  user wants to view roles of user with subject reference id "customerA" and subject reference type "user" from object type "userprofile"

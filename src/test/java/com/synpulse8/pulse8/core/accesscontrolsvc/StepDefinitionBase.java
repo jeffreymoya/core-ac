@@ -43,6 +43,8 @@ public class StepDefinitionBase {
 
     protected static boolean initialSetup = true;
 
+    protected static final AtomicReference<String> updateSchemaToken = new AtomicReference<>();
+
     protected static final AtomicReference<String> writeRelationshipToken = new AtomicReference<>();
 
     protected static final AtomicReference<String> deleteRelationshipToken = new AtomicReference<>();
@@ -90,7 +92,7 @@ public class StepDefinitionBase {
         } while (token.get() == null && System.currentTimeMillis() - startTime < timeoutMillis);
     }
 
-    protected void theDeleteResponseCodeShouldBe(int statusCode,AtomicReference<String> token) throws InterruptedException {
+    protected void theRelationshipResponseCodeShouldBe(int statusCode,AtomicReference<String> token) throws InterruptedException {
         token.set(null);
         ValidatableResponse then = response.then();
         then.statusCode(statusCode);

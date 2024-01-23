@@ -281,7 +281,12 @@ public class PermissionsSteps extends StepDefinitionBase {
 
     @Then("the delete relationship response code should be {int}")
     public void theDeleteRelationshipResponseCodeShouldBe(int statusCode) throws InterruptedException {
-        theDeleteResponseCodeShouldBe(statusCode, deleteRelationshipToken);
+        theRelationshipResponseCodeShouldBe(statusCode, deleteRelationshipToken);
+    }
+
+    @Then("the write relationship response code should be {int}")
+    public void theWriteRelationshipResponseCodeShouldBe(int statusCode) throws InterruptedException {
+        theRelationshipResponseCodeShouldBe(statusCode, writeRelationshipToken);
     }
 
     @And("the response body should contain the {string} relationship list")
@@ -321,7 +326,7 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @When("a user writes {string} relationship to the resource with principal {string}")
-    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws JsonProcessingException {
+    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws JsonProcessingException, InterruptedException {
         JsonNode testNode = testInput.path("relationships")
                 .path("create")
                 .path(relation);
@@ -333,6 +338,7 @@ public class PermissionsSteps extends StepDefinitionBase {
                 .body(requestBody)
                 .when()
                 .post("/v1/relationships");
+        sleep(writeRelationshipToken);
     }
 
     private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
@@ -391,4 +397,12 @@ public class PermissionsSteps extends StepDefinitionBase {
                 .post("/v1/permissions/route/check");
     }
 
+    @And("the user {string} should have {string} permission to the related resource")
+    public void the(String subjRefObjId, String permissionName) throws IOException {
+        JsonNode testNode = testInput.path("checkPermission").path(subjRefObjId).path(permissionName);
+        Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
+        given().contentType("application/json").header(principalHeader, "1234")
+                .body(objectMapper.writeValueAsString(requestBody)).when().post("/v1/permissions/check")
+                .then().statusCode(200);
+    }
 }
