@@ -29,9 +29,8 @@ public class SchemaController {
                 .thenApply(x -> ResponseEntity.ok(x.getSchemaText()));
     }
     @PostMapping("/schema")
-    public CompletableFuture<ResponseEntity<String>> writeSchema(@RequestBody WriteSchemaRequestDto requestBody) {
-        return schemaService.writeSchema(requestBody.toWriteSchemaRequest())
+    public CompletableFuture<ResponseEntity<String>> writeSchema(@RequestBody String requestBody) {
+        return schemaService.writeSchema(requestBody)
                 .thenApply(x -> ResponseEntity.ok(x.getWrittenAt().getToken()));
     }
-
 }

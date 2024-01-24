@@ -3,6 +3,7 @@ package com.synpulse8.pulse8.core.accesscontrolsvc.models;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class PolicyRolesAndPermissions {
     public static final String CAVEAT_ATTRIBUTES_MATCH = " with attributes_match";
 
     @Getter
+    @Setter
     @Builder
     public static class Role {
         private String name;
@@ -30,6 +32,7 @@ public class PolicyRolesAndPermissions {
     }
 
     @Getter
+    @Setter
     @Builder
     public static class Permission {
         private String name;

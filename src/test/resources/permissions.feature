@@ -51,7 +51,7 @@ Feature: Permissions API
     Given the API is available
     And the "<relation>" relationships are written
     When a user deletes "<relation>" relationships by "<option>" with principal "1234"
-    Then the delete response code should be 204
+    Then the delete relationship response code should be 204
     When a user reads "<relation>" relationships with principal "1234"
     Then the response code should be 200
     And the response body should contain the list size 0
@@ -79,8 +79,7 @@ Feature: Permissions API
     Then the response code should be 200
     When a user writes "adviser" relationship to the resource with principal "1234"
     Then the response code should be 200
-    When a user checks PBAC "update" permission of "adviserA" with principal "1234"
-    Then the response code should be 200
+    And the user "adviserA" should have "update" permission to the related resource
 
   Scenario: Get Definition from Existing Policy
     Given the API is available
