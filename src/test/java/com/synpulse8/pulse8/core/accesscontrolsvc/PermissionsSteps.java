@@ -397,6 +397,23 @@ public class PermissionsSteps extends StepDefinitionBase {
                 .post("/v1/permissions/route/check");
     }
 
+    @When("a user checks route permissions via {string} with principal {string} and route {string} and object type {string}")
+    public void aUserChecksRoutePermissionsViaWithPrincipalAndRouteAndObjectTypeAndObjectId(String method, String principal, String route, String objectType) {
+        CheckRoutePermissionDto dto = CheckRoutePermissionDto.builder()
+                .route(route)
+                .objectType(objectType)
+                .method(HttpMethodPermission.valueOf(method))
+                .build();
+
+
+        response = given()
+                .header(principalHeader, principal)
+                .contentType("application/json")
+                .body(dto)
+                .when()
+                .post("/v1/permissions/route/check");
+    }
+
     @And("the user {string} should have {string} permission to the related resource")
     public void the(String subjRefObjId, String permissionName) throws IOException {
         JsonNode testNode = testInput.path("checkPermission").path(subjRefObjId).path(permissionName);

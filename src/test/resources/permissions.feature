@@ -98,6 +98,18 @@ Feature: Permissions API
     When a user adds attribute to an existing policy
     Then the attribute response code should be 200
 
+  Scenario: Check Route Permissions without resourceType
+    Given the API is available
+    When a user checks route permissions via "GET" with principal "1234" and route "/pulse8/123" and uriTemplate "/{/?}{resourceId:.*}"
+    Then the response code should be 400
+    And the response should contain "Object type is required when URI Template does not contain resourceType"
+
+  Scenario: Check Route Permissions without resourceType
+    Given the API is available
+    When a user checks route permissions via "GET" with principal "1234" and route "/pulse8/123" and object type "nonexistingtype"
+    Then the response code should be 500
+    And the response should contain "object definition `nonexistingtype` not found"
+
   Scenario: Check Route Permissions
     Given the API is available
     When a user checks route permissions via "GET" with principal "1234" and route "/pulse8/123" and uriTemplate "/{resourceType}{/?}{resourceId:.*}"

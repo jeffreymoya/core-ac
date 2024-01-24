@@ -13,7 +13,13 @@ function Utils.checkPermission(user, routePath, httpMethod, plugin_conf)
       ["Content-Type"] = "application/json",
       [plugin_conf.auth_user_header] = user,
     },
-    body = cjson.encode({ route = routePath, method = httpMethod, uri_template = plugin_conf.uri_template }),
+    body = cjson.encode({
+      route = routePath,
+      method = httpMethod,
+      uri_template = plugin_conf.uri_template,
+      objectId = plugin_conf.object_id,
+      objectType = plugin_conf.object_type
+  }),
   })
 
   if not res then
@@ -28,6 +34,11 @@ function Utils.checkPermission(user, routePath, httpMethod, plugin_conf)
 
   if res.status == 500 then
     kong.log.err("Server error when checking permission: ", res.body)
+    return false
+  end
+
+  if res.status == 400 then
+    kong.log.err("Invalid request: ", res.body)
     return false
   end
 

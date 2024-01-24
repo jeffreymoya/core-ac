@@ -19,5 +19,7 @@ public class CheckRoutePermissionDto {
     private HttpMethodPermission method = HttpMethodPermission.GET;
     @JsonProperty("uri_template")
     private String uriTemplate;
+    private String objectId;
+    private String objectType;
 
 }
