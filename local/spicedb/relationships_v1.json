@@ -1,0 +1,17 @@
+[
+  {
+    "resource":  "policy01",
+    "resourceId": "testpolicy",
+    "relation":  "administrator",
+    "subject": "policy01",
+    "subjectId":  "pulse8admin",
+    "optionalSubjectRelation": "administrator"
+  },
+  {
+    "resource":  "policy01",
+    "resourceId": "testpolicy",
+    "relation":  "member",
+    "subject": "user",
+    "subjectId":  "user01"
+  }
+]
