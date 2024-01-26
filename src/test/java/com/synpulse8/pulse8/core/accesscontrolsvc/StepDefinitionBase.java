@@ -93,10 +93,10 @@ public class StepDefinitionBase {
     }
 
     protected void theRelationshipResponseCodeShouldBe(int statusCode,AtomicReference<String> token) throws InterruptedException {
-        token.set(null);
-        ValidatableResponse then = response.then();
-        then.statusCode(statusCode);
         token.set(response.getBody().asString());
         sleep(token);
+        ValidatableResponse then = response.then();
+        then.statusCode(statusCode);
+        token.set(null);
     }
 }
