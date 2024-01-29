@@ -399,5 +399,30 @@
         "rolesAnd": null
       }
     ]
+  },
+  "edit_policy": {
+    "name": "pulse8",
+    "updatedName": "newpolicyname",
+    "description": "this is a test insert",
+    "permissions": [
+      {
+        "name": "create",
+        "rolesOr": [
+          "policy_creator",
+          "policy_manager"
+        ],
+        "rolesAnd": null
+      },
+      {
+        "name": "view",
+        "rolesOr": [
+          "policy_creator",
+          "policy_manager",
+          "policy_member"
+        ],
+        "rolesAnd": null
+      }
+    ],
+    "access": "allow"
   }
 }
