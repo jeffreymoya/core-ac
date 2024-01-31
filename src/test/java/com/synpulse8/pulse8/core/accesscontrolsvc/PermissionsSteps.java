@@ -1,5 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
+import com.authzed.api.v1.PermissionService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -417,9 +418,8 @@ public class PermissionsSteps extends StepDefinitionBase {
     @And("the user {string} should have {string} permission to the related resource")
     public void the(String subjRefObjId, String permissionName) throws IOException {
         JsonNode testNode = testInput.path("checkPermission").path(subjRefObjId).path(permissionName);
-        Map<String, Object> requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
-        given().contentType("application/json").header(principalHeader, "1234")
-                .body(objectMapper.writeValueAsString(requestBody)).when().post("/v1/permissions/check")
-                .then().statusCode(200);
+        CheckPermissionRequestDto requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
+        permissionsService.checkPermissions(requestBody.toCheckPermissionRequest())
+                .thenAccept(r -> assertTrue(r.getPermissionship() == PermissionService.CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION));
     }
 }

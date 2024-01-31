@@ -78,7 +78,7 @@ Feature: Permissions API
     When a user writes "adviser" relation and permission to the "userprofile" resource with principal "1234"
     Then the response code should be 200
     When a user writes "adviser" relationship to the resource with principal "1234"
-    Then the response code should be 200
+    Then the write relationship response code should be 200
     And the user "adviserA" should have "update" permission to the related resource
 
   Scenario: Get Definition from Existing Policy
