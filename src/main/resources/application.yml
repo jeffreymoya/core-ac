@@ -11,4 +11,4 @@ p8c:
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/p8c-core-access-control
+      uri: mongodb://mongodb:27017/p8c-core-access-control

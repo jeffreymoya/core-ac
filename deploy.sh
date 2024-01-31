@@ -9,7 +9,5 @@ printStep() {
 printStep "Compile Pulse8 Core Access Control and push image"
 sh ./compile.sh
 
-cd local
-
-printStep "Deploy pulse8-core-access-control image"
-docker compose up -d
+printStep "Deploy pulse8-core-access-control image".
+docker compose -f local/docker-compose.yml up -d --build
