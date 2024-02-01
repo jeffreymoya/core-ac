@@ -55,6 +55,7 @@ services:
       SPICEDB_HOST: spicedb
       SPICEDB_PORT: 50051
       SPICEDB_PRESHARED_KEY: test_key
+      MONGODB_URI: mongodb://mongodb:27017/p8c-core-access-control
   echo-server:
     container_name: "echoserver"
     image: inanimate/echo-server:latest
