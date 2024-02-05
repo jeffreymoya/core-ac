@@ -73,4 +73,11 @@ public class PolicyDefinitionDto {
                 .build();
     }
 
+    public void setMetaData(PolicyMetaData metaData) {
+        this.setName(metaData.getName());
+        this.setDescription(metaData.getDescription());
+        this.setAttributes(metaData.getAttributes());
+        this.setAccess(metaData.getAccess());
+    }
+
 }
