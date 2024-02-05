@@ -420,15 +420,17 @@ public class PolicyDefinitionService {
 
             String policyName = Optional.ofNullable(dto.getUpdatedName()).orElse(dto.getName());
 
-            dto.getPermissions().forEach(permission -> {
-                Stream.concat(
-                                Optional.ofNullable(permission.getRolesOr()).orElse(Collections.emptyList()).stream(),
-                                Optional.ofNullable(permission.getRolesAnd()).orElse(Collections.emptyList()).stream()
-                        )
-                        .filter(role -> policyRolesAndPermissions.getRoles().stream().noneMatch(r -> r.getName().equals(role)))
-                        .findFirst()
-                        .ifPresent(role -> { throw new P8CException("Role not found: " + role); });
-            });
+            if(dto.getPermissions() != null) {
+                dto.getPermissions().forEach(permission -> {
+                    Stream.concat(
+                                    Optional.ofNullable(permission.getRolesOr()).orElse(Collections.emptyList()).stream(),
+                                    Optional.ofNullable(permission.getRolesAnd()).orElse(Collections.emptyList()).stream()
+                            )
+                            .filter(role -> policyRolesAndPermissions.getRoles().stream().noneMatch(r -> r.getName().equals(role)))
+                            .findFirst()
+                            .ifPresent(role -> { throw new P8CException("Role not found: " + role); });
+                });
+            }
 
             PolicyDefinitionDto policy = PolicyDefinitionDto.builder()
                     .name(dto.getName())
