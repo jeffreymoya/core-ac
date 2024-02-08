@@ -19,6 +19,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StepDefinitionBase {
@@ -99,4 +100,18 @@ public class StepDefinitionBase {
         then.statusCode(statusCode);
         token.set(null);
     }
+
+    protected void writeRelationships(JsonNode testNode) throws InterruptedException {
+        WriteRelationshipRequestDto request = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
+        permissionsService.writeRelationships(request.toWriteRelationshipRequest())
+                .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
+        sleep(writeRelationshipToken);
+    }
+
+    protected void updateSchema(String schemaText) throws InterruptedException, ExecutionException {
+        WriteSchemaRequestDto writeSchemaRequestBody = objectMapper.convertValue(Collections.singletonMap("schema", schemaText), WriteSchemaRequestDto.class);
+        schemaService.writeSchema(writeSchemaRequestBody.toWriteSchemaRequest()).join();
+        sleep(updateSchemaToken);
+    }
+
 }
