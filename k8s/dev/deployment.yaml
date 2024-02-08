@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulse8-core-access-control-deployment
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: pulse8-core-access-control
+          image: synpulse8/library/pulse8-core-access-control
