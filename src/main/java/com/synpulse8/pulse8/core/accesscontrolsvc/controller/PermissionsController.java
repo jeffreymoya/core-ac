@@ -34,10 +34,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -60,6 +58,9 @@ public class PermissionsController {
 
     @Value("${p8c.route-check.constants.subjectType}")
     private String subjectType;
+
+    @Value("${p8c.security.client-ip-header}")
+    private String clientIpHeader;
 
     private final ConcurrentMap<String, UriTemplate> uriTemplateCache = new ConcurrentHashMap<>();
 
@@ -106,13 +107,28 @@ public class PermissionsController {
         if (StringUtils.isBlank(objectId))
             objectId = "-";
 
-        CheckPermissionRequestDto dto = CheckPermissionRequestDto.builder()
+        CheckPermissionRequestDto.CheckPermissionRequestDtoBuilder<?, ?> builder = CheckPermissionRequestDto.builder()
                 .permission(requestBody.getMethod().getPermission())
                 .subjRefObjId(request.getHeader(subject))
                 .subjRefObjType(subjectType)
                 .objectType(objectType)
-                .objectId(objectId)
-                .build();
+                .objectId(objectId);
+
+        Map<String, Object> context = Optional.ofNullable(requestBody.getContext()).orElse(new HashMap<>());
+
+        // IP address
+        String userIp = request.getHeader(clientIpHeader);
+        if (StringUtils.isNoneBlank(userIp)) {
+            String[] ipAddresses = userIp.split(",");
+            context.put("user_ip", ipAddresses[0].trim());
+        }
+
+        // Current timestamp
+        context.put("now", Instant.now().toString());
+
+        if (!context.isEmpty()) builder.context(context);
+
+        CheckPermissionRequestDto dto = builder.build();
 
         LOGGER.debug("CheckPermissionRequestDto: {}", dto);
 
