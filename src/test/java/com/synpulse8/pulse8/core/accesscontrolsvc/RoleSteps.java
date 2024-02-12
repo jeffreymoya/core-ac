@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -66,19 +65,19 @@ public class RoleSteps extends StepDefinitionBase {
 
 
     @Given("the {string} role is written in the resource {string}")
-    public void aRoleIsWritten(String roleName, String resourceName) throws InterruptedException, ExecutionException {
+    public void aRoleIsWritten(String roleName, String resourceName) throws InterruptedException {
         JsonNode testNode = testInput.path("schema").path("update").path(resourceName).path(roleName);
         updateSchema(testNode.asText());
     }
 
     @Given("the {string} role is written in the resource {string} and has relationships")
-    public void aRoleIsWrittenAndHasRelationships(String roleName, String resourceName) throws InterruptedException, ExecutionException {
+    public void aRoleIsWrittenAndHasRelationships(String roleName, String resourceName) throws InterruptedException {
         aRoleIsWritten(roleName, resourceName);
         writeRelationships(testInput.get("relationships").get("create").get(roleName));
     }
 
     @When("a user deletes {string} role under {string} policy using principal {string}")
-    public void aUserDeletesRoleWithPrincipal(String roleName, String resourceName, String principal) throws JsonProcessingException, InterruptedException {
+    public void aUserDeletesRoleWithPrincipal(String roleName, String resourceName, String principal) {
         String url = "/v1/roles/" + resourceName + "/" + roleName;
 
         response = given()

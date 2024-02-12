@@ -19,7 +19,6 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StepDefinitionBase {
@@ -108,7 +107,7 @@ public class StepDefinitionBase {
         sleep(writeRelationshipToken);
     }
 
-    protected void updateSchema(String schemaText) throws InterruptedException, ExecutionException {
+    protected void updateSchema(String schemaText) throws InterruptedException {
         WriteSchemaRequestDto writeSchemaRequestBody = objectMapper.convertValue(Collections.singletonMap("schema", schemaText), WriteSchemaRequestDto.class);
         schemaService.writeSchema(writeSchemaRequestBody.toWriteSchemaRequest()).join();
         sleep(updateSchemaToken);

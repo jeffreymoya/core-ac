@@ -32,8 +32,7 @@ import java.util.concurrent.ExecutionException;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class PermissionsSteps extends StepDefinitionBase {
 
@@ -251,7 +250,7 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @When("a user reads {string} relationships with principal {string}")
-    public void aUserReadsRelationshipsWithPrincipal(String relation, String principal) throws JsonProcessingException {
+    public void aUserReadsRelationshipsWithPrincipal(String relation, String principal) {
         JsonNode testNode = testInput.path("relationships")
                 .path("view")
                 .path(relation)
@@ -262,7 +261,7 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @When("a user deletes {string} relationships by {string} with principal {string}")
-    public void aUserDeletesRelationshipsWithPrincipal(String relation, String option, String principal) throws JsonProcessingException, InterruptedException {
+    public void aUserDeletesRelationshipsWithPrincipal(String relation, String option, String principal) {
         JsonNode testNode = testInput.path("relationships")
                 .path("delete")
                 .path(relation)
@@ -311,7 +310,7 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @When("a user writes {string} relation and permission to the {string} resource with principal {string}")
-    public void aUserUpdatesSchemaWithPrincipal(String relation, String resource, String principal) throws JsonProcessingException {
+    public void aUserUpdatesSchemaWithPrincipal(String relation, String resource, String principal) {
         JsonNode testNode = testInput.path("schema")
                 .path("update")
                 .path(resource)
@@ -326,7 +325,7 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @When("a user writes {string} relationship to the resource with principal {string}")
-    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws JsonProcessingException, InterruptedException {
+    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws InterruptedException {
         JsonNode testNode = testInput.path("relationships")
                 .path("create")
                 .path(relation);
@@ -341,7 +340,7 @@ public class PermissionsSteps extends StepDefinitionBase {
         sleep(writeRelationshipToken);
     }
 
-    private RequestSpecification createRequestSpecificationBuilder(String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
+    private RequestSpecification createRequestSpecificationBuilder(String principal, HttpMethodPermission httpMethodPermission) {
         final RequestSpecification builder = given();
 
         if (httpMethodPermission.equals(HttpMethodPermission.POST)) {
@@ -415,11 +414,11 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @And("the user {string} should have {string} permission to the related resource")
-    public void the(String subjRefObjId, String permissionName) throws IOException {
+    public void theUserShouldHavePermissionToTheResource(String subjRefObjId, String permissionName) {
         JsonNode testNode = testInput.path("checkPermission").path(subjRefObjId).path(permissionName);
         CheckPermissionRequestDto requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
         permissionsService.checkPermissions(requestBody.toCheckPermissionRequest())
-                .thenAccept(r -> assertTrue(r.getPermissionship() == PermissionService.CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION));
+                .thenAccept(r -> assertSame(r.getPermissionship(), PermissionService.CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION));
     }
 
     @After("@CaveatScenario")

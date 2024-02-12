@@ -126,7 +126,7 @@ public class PermissionsController {
         // Current timestamp
         context.put("now", Instant.now().toString());
 
-        if (!context.isEmpty()) builder.context(context);
+        builder.context(context);
 
         CheckPermissionRequestDto dto = builder.build();
 
