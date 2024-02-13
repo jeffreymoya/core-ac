@@ -18,6 +18,8 @@ services:
       interval: 5s
       timeout: 10s
       retries: 120
+    networks:
+      - pulse8-central-bridge
   spicedb:
     container_name: "spicedb"
     image: authzed/spicedb:v1.29.0
@@ -41,6 +43,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - pulse8-central-bridge
   pulse8-core-access-control:
     container_name: pulse8-core-access-control
     image: pulse8-core-access-control:latest
@@ -49,17 +53,24 @@ services:
     ports:
       - "3010:3010"
       - "5010:5010"
+    networks:
+      - pulse8-central-bridge
     environment:
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5010 -Xms256m -Xmx4G"
       SPICEDB_HOST: spicedb
       SPICEDB_PORT: 50051
       SPICEDB_PRESHARED_KEY: test_key
       MONGODB_URI: mongodb://mongodb:27017/p8c-core-access-control
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+      SCHEMA_REGISTRY_URL: "schemaregistry:8084"
+      SPRING_KAFKA_PRODUCER_ACKS: all
   echo-server:
     container_name: "echoserver"
     image: inanimate/echo-server:latest
     ports:
       - "3000:8080"
+    networks:
+      - pulse8-central-bridge
   kong:
     image: kong/kong-gateway:3.5
     container_name: pulse8-kong
@@ -77,8 +88,60 @@ services:
       - ./config:/opt/kong
     ports:
       - 8000:8000
+    networks:
+      - pulse8-central-bridge
   mongodb:
     image: mongo:7.0.5
     container_name: mongodb
     ports:
       - "27017:27017"
+    networks:
+      - pulse8-central-bridge
+  zookeeper:
+    container_name: pulse8-zookeeper-ac
+    image: confluentinc/cp-zookeeper:7.2.2
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2182
+    ports:
+      - 2182:2182
+    networks:
+      - pulse8-central-bridge
+  kafka:
+    container_name: pulse8-kafka-ac
+    image: confluentinc/cp-kafka:7.2.2
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2182
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_SCHEMA_REGISTRY_URL: "schemaregistry:8084"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    ports:
+      - 9092:9092
+    networks:
+      - pulse8-central-bridge
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  schemaregistry:
+    container_name: pulse8-schemaregistry-ac
+    image: confluentinc/cp-schema-registry:7.2.2
+    depends_on:
+      - zookeeper
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2182"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka:9092"
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8084"
+    ports:
+      - 8084:8084
+    networks:
+      - pulse8-central-bridge
+networks:
+  pulse8-central-bridge:
+    name: pulse8-central-bridge
+    driver: bridge

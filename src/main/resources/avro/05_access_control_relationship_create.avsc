@@ -1,0 +1,35 @@
+{
+  "type": "record",
+  "namespace": "com.synpulse8.pulse8.core",
+  "name": "ResourceCreation",
+  "doc": "Schema for storing relationships in spicedb",
+  "aliases": [
+    "CREATE_RESOURCE"
+  ],
+  "fields": [
+    {
+      "name": "OPERATION",
+      "type": "string"
+    },
+    {
+      "name": "objectType",
+      "type": "string"
+    },
+    {
+      "name": "objectId",
+      "type": "string"
+    },
+    {
+      "name": "relation",
+      "type": "string"
+    },
+    {
+      "name": "subjRefObjType",
+      "type": "string"
+    },
+    {
+      "name": "subjRefObjId",
+      "type": "string"
+    }
+  ]
+}
