@@ -5,7 +5,8 @@
       "userprofile": {
         "adviser": "// schema for pulse8 \n\n  // user represents a user \n  definition user {}\n\n  definition organization {\n    relation group: usergroup\n    relation administrator: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator\n    relation direct_member: user | usergroup#member | usergroup#direct_member | usergroup#system_administrator | usergroup#security_administrator\n\n    permission admin = administrator\n    permission member = direct_member + administrator + group->member\n\n    permission view = administrator + direct_member\n    permission update = administrator\n    permission delete = administrator\n    permission create = administrator\n  }\n\n  definition usergroup {\n    relation system_administrator : user | usergroup#member | usergroup#system_administrator\n    relation security_administrator : user | usergroup#member | usergroup#security_administrator\n    relation direct_member: user | usergroup#member | usergroup#system_administrator | usergroup#security_administrator | usergroup#direct_member\n\n    permission system_admin = system_administrator\n    permission security_admin = security_administrator\n    permission member = direct_member\n\n    permission view = system_administrator + security_administrator + direct_member\n    permission update = system_administrator + security_administrator\n    permission delete = system_administrator + security_administrator\n    permission create = system_administrator + security_administrator\n  }\n\n  // policy represents a policy \n  definition policy{\n    relation group : usergroup\n    relation policy_manager : user | usergroup#security_admin | usergroup#security_administrator\n    relation policy_member : user | usergroup#member | usergroup#system_administrator | usergroup#system_admin | usergroup#direct_member\n    relation policy_creator : user | usergroup#security_admin | usergroup#security_administrator\n  relation policy_viewer : usergroup#member\n\n    permission create = policy_creator + policy_manager\n    permission view = policy_creator + policy_manager + policy_member\n    permission update = policy_creator + policy_manager\n    permission delete = group->security_admin\n  }\n\n  // test - usermanagement policy \n  definition policy/usermanagement{\n    relation owner : user\n    relation viewer : usergroup#member | usergroup#direct_member | usergroup#system_administrator\n    relation admin : usergroup#system_admin | usergroup#system_administrator\n\n    permission view = owner + viewer\n    permission update = owner + admin\n    permission delete = owner + admin\n    permission create = owner + admin\n\n  }\n\n  definition userprofile{\n    relation owner : user\n    relation viewer : usergroup#member | usergroup#direct_member | usergroup#system_administrator\n    relation adviser : user\n    relation admin : usergroup | usergroup#system_admin | usergroup#system_administrator\n\n    permission view = owner + admin->system_administrator + viewer + adviser\n    permission update = owner + admin->system_administrator + adviser\n    permission delete = owner + admin\n    permission create = owner + admin->system_administrator\n\n  }\n\n  definition logs{\n    relation manager : usergroup#security_administrator | usergroup#security_admin\n\n    permission view = manager\n    permission update = manager\n    permission delete = manager\n    permission create = manager\n  }\n\n  caveat has_valid_ip(user_ip ipaddress, allowed_range string) {\n    user_ip.in_cidr(allowed_range)\n  }\n\n  caveat is_weekend(today string){\n    today == 'saturday'\n  }\n\n  caveat attributes_match(expected map<any>, provided map<any>) {\n    expected.isSubtreeOf(provided)\n  }\n\ndefinition pulse8 {\n\trelation group: usergroup with attributes_match\n\trelation policy_manager: user with attributes_match | usergroup#security_admin with attributes_match | usergroup#security_administrator with attributes_match\n\trelation policy_member: user with attributes_match | usergroup#member with attributes_match | usergroup#system_administrator with attributes_match | usergroup#system_admin with attributes_match | usergroup#direct_member with attributes_match\n\trelation policy_creator: user with attributes_match | usergroup#security_admin with attributes_match | usergroup#security_administrator with attributes_match\n\tpermission create = policy_creator + policy_manager\n\tpermission view = policy_creator + policy_manager + policy_member\n\tpermission update = policy_creator + policy_manager\n\tpermission delete = group->security_admin\n}"
       }
-    }
+    },
+    "caveat": "\n\ncaveat expected_ip_range(user_ip ipaddress, allowed_range string) {\n    user_ip.in_cidr(allowed_range)\n}\n\ncaveat time_of_day_restriction(now string, start_hour int, start_minutes int, end_hour int, end_minutes int, timezone_offset string) {\n    (\n        timestamp(now).getHours(timezone_offset) > start_hour ||\n        (\n            timestamp(now).getHours(timezone_offset) == start_hour && \n            timestamp(now).getMinutes(timezone_offset) > start_minutes\n        ) ||\n        (\n            timestamp(now).getHours(timezone_offset) == start_hour && \n            timestamp(now).getMinutes(timezone_offset) == start_minutes && \n            timestamp(now).getSeconds(timezone_offset) > 0\n        ) ||\n        (\n            timestamp(now).getHours(timezone_offset) == start_hour && \n            timestamp(now).getMinutes(timezone_offset) == start_minutes && \n            timestamp(now).getSeconds(timezone_offset) == 0 && \n            timestamp(now).getMilliseconds(timezone_offset) >= 0\n        )\n    ) &&\n    (\n        timestamp(now).getHours(timezone_offset) < end_hour ||\n        (\n            timestamp(now).getHours(timezone_offset) == end_hour && \n            timestamp(now).getMinutes(timezone_offset) < end_minutes\n        ) ||\n        (\n            timestamp(now).getHours(timezone_offset) == end_hour && \n            timestamp(now).getMinutes(timezone_offset) == end_minutes && \n            timestamp(now).getSeconds(timezone_offset) == 0 && \n            timestamp(now).getMilliseconds(timezone_offset) == 0\n        )\n    )\n}\n\ndefinition test_organization {\n    relation member: user\n    relation ip_allowlist_policy: test_organization#member with expected_ip_range\n    relation time_of_day_policy: test_organization#member with time_of_day_restriction\n}\n\ndefinition test_resource {\n    relation reader: test_organization#member\n    relation attributes_match_policy: test_resource#reader with attributes_match\n\n    permission view = reader->ip_allowlist_policy\n    permission create = reader->time_of_day_policy\n    permission update = attributes_match_policy\n}\n\n"
   },
   "relationships": {
     "create": {
@@ -145,6 +146,72 @@
             "subjRefObjId": "systemAdmin1"
           }
         ]
+      },
+      "caveat": {
+        "updates": [
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "test_organization",
+            "objectId": "test_org_1",
+            "relation": "member",
+            "subjRefObjType": "user",
+            "subjRefObjId": "member_a"
+          },
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "test_organization",
+            "objectId": "test_org_1",
+            "relation": "ip_allowlist_policy",
+            "subjRefObjType": "test_organization",
+            "subjRefObjId": "test_org_1",
+            "subjRelation": "member",
+            "caveatName": "expected_ip_range",
+            "context": {
+              "allowed_range": "10.20.30.0/24"
+            }
+          },
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "test_organization",
+            "objectId": "test_org_1",
+            "relation": "time_of_day_policy",
+            "subjRefObjType": "test_organization",
+            "subjRefObjId": "test_org_1",
+            "subjRelation": "member",
+            "caveatName": "time_of_day_restriction",
+            "context": {
+              "start_hour": 9,
+              "start_minutes": 30,
+              "end_hour": 18,
+              "end_minutes": 45,
+              "timezone_offset": "+08:00"
+            }
+          },
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "test_resource",
+            "objectId": "test_resource_1",
+            "relation": "attributes_match_policy",
+            "subjRefObjType": "test_resource",
+            "subjRefObjId": "test_resource_1",
+            "subjRelation": "reader",
+            "caveatName": "attributes_match",
+            "context": {
+              "expected": {
+                "sensitivity": "confidential"
+              }
+            }
+          },
+          {
+            "operation": "OPERATION_TOUCH",
+            "objectType": "test_resource",
+            "objectId": "test_resource_1",
+            "relation": "reader",
+            "subjRefObjType": "test_organization",
+            "subjRefObjId": "test_org_1",
+            "subjRelation": "member"
+          }
+        ]
       }
     },
     "update": {
@@ -255,6 +322,58 @@
         "subjRefObjType": "user",
         "subjRefObjId": "systemAdmin1",
         "permission": "update"
+      }
+    },
+    "memberA": {
+      "base": {
+        "objectType": "test_resource",
+        "objectId": "test_resource_1",
+        "subjRefObjType": "user",
+        "subjRefObjId": "member_a"
+      },
+      "ip": {
+        "permitted": {
+          "context": {
+            "user_ip": "10.20.30.0"
+          },
+          "permission": "view"
+        },
+        "forbidden": {
+          "context": {
+            "user_ip": "10.20.31.0"
+          },
+          "permission": "view"
+        }
+      },
+      "time": {
+        "permitted": {
+          "context": {
+            "now": "2024-02-07T2:30:00Z"
+          },
+          "permission": "create"
+        },
+        "forbidden": {
+          "context": {
+            "now": "2024-02-07T20:30:00Z"
+          },
+          "permission": "create"
+        }
+      },
+      "attributes": {
+        "permitted": {
+          "context": {
+            "provided": {
+              "sensitivity": "confidential"
+            }
+          },
+          "permission": "update"
+        },
+        "forbidden": {
+          "context": {
+            "provided": {}
+          },
+          "permission": "update"
+        }
       }
     }
   },

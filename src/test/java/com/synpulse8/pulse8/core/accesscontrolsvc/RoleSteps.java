@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.EditRoleDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.RolesAndPermissionDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
 import io.cucumber.java.Before;
@@ -18,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -70,22 +67,17 @@ public class RoleSteps extends StepDefinitionBase {
     @Given("the {string} role is written in the resource {string}")
     public void aRoleIsWritten(String roleName, String resourceName) throws InterruptedException {
         JsonNode testNode = testInput.path("schema").path("update").path(resourceName).path(roleName);
-        WriteSchemaRequestDto requestBody = objectMapper.convertValue(Collections.singletonMap("schema", testNode), WriteSchemaRequestDto.class);
-        schemaService.writeSchema(requestBody.toWriteSchemaRequest()).join();
-        sleep(updateSchemaToken);
+        updateSchema(testNode.asText());
     }
 
     @Given("the {string} role is written in the resource {string} and has relationships")
     public void aRoleIsWrittenAndHasRelationships(String roleName, String resourceName) throws InterruptedException {
         aRoleIsWritten(roleName, resourceName);
-        WriteRelationshipRequestDto request = objectMapper.convertValue(testInput.get("relationships").get("create").get(roleName), WriteRelationshipRequestDto.class);
-        permissionsService.writeRelationships(request.toWriteRelationshipRequest())
-                .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
-        sleep(writeRelationshipToken);
+        writeRelationships(testInput.get("relationships").get("create").get(roleName));
     }
 
     @When("a user deletes {string} role under {string} policy using principal {string}")
-    public void aUserDeletesRoleWithPrincipal(String roleName, String resourceName, String principal) throws JsonProcessingException, InterruptedException {
+    public void aUserDeletesRoleWithPrincipal(String roleName, String resourceName, String principal) {
         String url = "/v1/roles/" + resourceName + "/" + roleName;
 
         response = given()
