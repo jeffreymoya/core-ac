@@ -1,6 +1,7 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
 import com.authzed.api.v1.PermissionService;
+import com.authzed.api.v1.SchemaServiceOuterClass;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,6 +12,7 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.PolicyRolesAndPermissions;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.SchemaService;
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -30,8 +32,7 @@ import java.util.concurrent.ExecutionException;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class PermissionsSteps extends StepDefinitionBase {
 
@@ -245,31 +246,28 @@ public class PermissionsSteps extends StepDefinitionBase {
         JsonNode testNode = testInput.path("relationships")
                 .path("update")
                 .path(relation);
-        WriteRelationshipRequestDto request = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
-        permissionsService.writeRelationships(request.toWriteRelationshipRequest())
-                .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
-        sleep(writeRelationshipToken);
+        writeRelationships(testNode);
     }
 
     @When("a user reads {string} relationships with principal {string}")
-    public void aUserReadsRelationshipsWithPrincipal(String relation, String principal) throws JsonProcessingException {
+    public void aUserReadsRelationshipsWithPrincipal(String relation, String principal) {
         JsonNode testNode = testInput.path("relationships")
                 .path("view")
                 .path(relation)
                 .path("request");
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.GET);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.GET);
         String url = "/v1/relationships" + createRequestQueryString(testNode);
         response = builder.when().get(url);
     }
 
     @When("a user deletes {string} relationships by {string} with principal {string}")
-    public void aUserDeletesRelationshipsWithPrincipal(String relation, String option, String principal) throws JsonProcessingException, InterruptedException {
+    public void aUserDeletesRelationshipsWithPrincipal(String relation, String option, String principal) {
         JsonNode testNode = testInput.path("relationships")
                 .path("delete")
                 .path(relation)
                 .path(option);
 
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.DELETE);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.DELETE);
         String url = "/v1/relationships";
         if (option.equals("filter")) {
             url += createRequestQueryString(testNode);
@@ -312,13 +310,13 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @When("a user writes {string} relation and permission to the {string} resource with principal {string}")
-    public void aUserUpdatesSchemaWithPrincipal(String relation, String resource, String principal) throws JsonProcessingException {
+    public void aUserUpdatesSchemaWithPrincipal(String relation, String resource, String principal) {
         JsonNode testNode = testInput.path("schema")
                 .path("update")
                 .path(resource)
                 .path(relation);
 
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.POST);
 
         response = builder
                 .body(testNode.asText())
@@ -327,13 +325,13 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @When("a user writes {string} relationship to the resource with principal {string}")
-    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws JsonProcessingException, InterruptedException {
+    public void aUserWritesRelationshipWithPrincipal(String relation, String principal) throws InterruptedException {
         JsonNode testNode = testInput.path("relationships")
                 .path("create")
                 .path(relation);
         WriteRelationshipRequestDto requestBody = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
 
-        final RequestSpecification builder = createRequestSpecificationBuilder(testNode, principal, HttpMethodPermission.POST);
+        final RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.POST);
 
         response = builder
                 .body(requestBody)
@@ -342,7 +340,7 @@ public class PermissionsSteps extends StepDefinitionBase {
         sleep(writeRelationshipToken);
     }
 
-    private RequestSpecification createRequestSpecificationBuilder(JsonNode testNode, String principal, HttpMethodPermission httpMethodPermission) throws JsonProcessingException {
+    private RequestSpecification createRequestSpecificationBuilder(String principal, HttpMethodPermission httpMethodPermission) {
         final RequestSpecification builder = given();
 
         if (httpMethodPermission.equals(HttpMethodPermission.POST)) {
@@ -416,10 +414,39 @@ public class PermissionsSteps extends StepDefinitionBase {
     }
 
     @And("the user {string} should have {string} permission to the related resource")
-    public void the(String subjRefObjId, String permissionName) throws IOException {
+    public void theUserShouldHavePermissionToTheResource(String subjRefObjId, String permissionName) {
         JsonNode testNode = testInput.path("checkPermission").path(subjRefObjId).path(permissionName);
         CheckPermissionRequestDto requestBody = objectMapper.convertValue(testNode, new TypeReference<>() {});
         permissionsService.checkPermissions(requestBody.toCheckPermissionRequest())
-                .thenAccept(r -> assertTrue(r.getPermissionship() == PermissionService.CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION));
+                .thenAccept(r -> assertSame(r.getPermissionship(), PermissionService.CheckPermissionResponse.Permissionship.PERMISSIONSHIP_HAS_PERMISSION));
+    }
+
+    @After("@CaveatScenario")
+    public void cleanupCaveatScenario() throws ExecutionException, InterruptedException {
+        permissionsService.deleteRelationships(DeleteRelationshipRequestDto.builder().objectType("test_resource").build().toDeleteRelationshipsRequest()).get();
+        permissionsService.deleteRelationships(DeleteRelationshipRequestDto.builder().objectType("test_organization").build().toDeleteRelationshipsRequest()).get();
+        sleep(deleteRelationshipToken);
+    }
+
+    @Given("the {string} is written in the schema and has relationships")
+    public void addPolicyToSchema(String policyName) throws InterruptedException, ExecutionException {
+        SchemaServiceOuterClass.ReadSchemaRequest readSchemaRequestBody = SchemaServiceOuterClass.ReadSchemaRequest.newBuilder().build();
+        SchemaServiceOuterClass.ReadSchemaResponse schemaResponse = schemaService.readSchema(readSchemaRequestBody).get();
+        String schemaText = schemaResponse.getSchemaText() + testInput.get("schema").get(policyName).asText();
+        updateSchema(schemaText);
+        writeRelationships(testInput.get("relationships").get("create").get(policyName));
+    }
+
+    @When("a user checks permission of {string} with {string} {string} and principal {string}")
+    public void aUserChecksCaveatPermission(String subjRefObjId, String scenario, String policy, String principal) throws IOException {
+        JsonNode baseNode = testInput.path("checkPermission").path(subjRefObjId);
+        Map<String, Object> requestBody = objectMapper.convertValue(baseNode.path("base"), new TypeReference<>() {});
+        requestBody.putAll(objectMapper.convertValue(baseNode.path(policy).path(scenario), new TypeReference<>() {}));
+        RequestSpecification builder = createRequestSpecificationBuilder(principal, HttpMethodPermission.POST);
+
+        response = builder
+                .body(objectMapper.writeValueAsString(requestBody))
+                .when()
+                .post("/v1/permissions/check");
     }
 }

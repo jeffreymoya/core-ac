@@ -28,6 +28,6 @@ RUN apt install -y curl ca-certificates gpg && \
 
 WORKDIR /app
 
-COPY --from=authzed/spicedb:latest /usr/local/bin/spicedb /usr/local/bin/spicedb
+COPY --from=authzed/spicedb:v1.29.0 /usr/local/bin/spicedb /usr/local/bin/spicedb
 
 ENTRYPOINT ["/app/start.sh"]

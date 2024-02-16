@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Map;
+
 @Getter
 @SuperBuilder
 @NoArgsConstructor
@@ -21,5 +23,7 @@ public class CheckRoutePermissionDto {
     private String uriTemplate;
     private String objectId;
     private String objectType;
+    @Schema(description = "Context for caveat", example = "{}")
+    protected Map<String, Object> context;
 
 }
