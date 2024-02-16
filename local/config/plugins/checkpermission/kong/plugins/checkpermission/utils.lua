@@ -7,11 +7,16 @@ function Utils.checkPermission(user, routePath, httpMethod, plugin_conf)
   local httpc = http.new()
   httpc:set_timeout(5000)
 
+  local user_ip = ngx.var.remote_addr
+
+  kong.log.debug("Request from user_ip: ", user_ip)
+
   local res, err = httpc:request_uri(plugin_conf.pdp_endpoint, {
     method = "POST",
     headers = {
       ["Content-Type"] = "application/json",
       [plugin_conf.auth_user_header] = user,
+      ["X-Forwarded-For"] = user_ip,
     },
     body = cjson.encode({
       route = routePath,
