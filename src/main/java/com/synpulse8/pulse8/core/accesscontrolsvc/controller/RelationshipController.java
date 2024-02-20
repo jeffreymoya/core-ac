@@ -6,6 +6,7 @@ import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDt
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.ApiError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
+import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.producer.KafkaProducerService;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,8 +38,11 @@ public class RelationshipController {
 
     private final PermissionsService permissionsService;
 
-    public RelationshipController(PermissionsService permissionsService) {
+    private final KafkaProducerService kafkaProducerService;
+
+    public RelationshipController(PermissionsService permissionsService, KafkaProducerService kafkaProducerService) {
         this.permissionsService = permissionsService;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     @PostMapping("/relationships")
@@ -111,5 +115,15 @@ public class RelationshipController {
     public CompletableFuture<ResponseEntity<Void>> deleteRelationshipsByFilter(@Valid @ModelAttribute DeleteRelationshipRequestDto requestParams) {
         return permissionsService.deleteRelationships(requestParams.toDeleteRelationshipsRequest())
                 .thenApply(x -> ResponseEntity.noContent().build());
+    }
+
+    @PostMapping("/relationships/create")
+    @Operation(description = "Store Relationships", summary = "Endpoint to store relationships.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully wrote relationships", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to write relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
+    })
+    public void createRelationship(@Valid @RequestBody WriteRelationshipRequestDto requestBody) {
+        kafkaProducerService.createRelationship(requestBody.toWriteRelationshipRequest().toString());
     }
 }

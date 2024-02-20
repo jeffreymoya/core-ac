@@ -13,3 +13,25 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI}
+  kafka:
+    listener:
+      missing-topics-fatal: false
+    bootstrap-servers: kafka:9092
+    properties:
+      schema:
+        registry:
+          url: ${SCHEMA_REGISTRY_URL}
+    # add this config for producer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        acks: all
+    # add this config for consumer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        specific:
+          avro:
+            reader: true

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulse8-core-access-control-deployment
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    spec:
+      imagePullSecrets:
+        - name: synpulse-jfrog-docker-credential
+      containers:
+        - name: pulse8-core-access-control
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: pulse8-core-access-control-config
+          ports:
+            - containerPort: 3010
+            - containerPort: 3010

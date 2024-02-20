@@ -10,15 +10,15 @@ logging:
           clients:
             NetworkClient: ERROR
 
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      properties:
-        acks: all
-    consumer:
-      group-id: main
-      auto-offset-reset: earliest
-      default-topic: general
+#  kafka:
+#    bootstrap-servers: localhost:9092
+#    producer:
+#      properties:
+#        acks: all
+#    consumer:
+#      group-id: main
+#      auto-offset-reset: earliest
+#      default-topic: general
 
 
 
