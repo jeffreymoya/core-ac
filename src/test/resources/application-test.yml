@@ -17,4 +17,18 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/p8c-core-access-control
+  kafka:
+    properties:
+      schema:
+        registry:
+          url: http://mock:8081
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        acks: all
+    consumer:
+      group-id: main
+      auto-offset-reset: earliest
+      default-topic: general
 

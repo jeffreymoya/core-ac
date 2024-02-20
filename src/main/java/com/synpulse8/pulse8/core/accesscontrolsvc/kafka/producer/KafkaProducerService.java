@@ -1,15 +1,13 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.kafka.producer;
 
-import com.authzed.api.v1.PermissionService;
-import com.synpulse8.pulse8.core.RelationshipCreation;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.DeleteRelationshipMessage;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaTopic;
 import org.apache.kafka.common.network.Send;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import com.synpulse8.pulse8.core.RelationshipCreation;
 
 @Service
 public class KafkaProducerService {
@@ -43,6 +41,10 @@ public class KafkaProducerService {
                 .setSubjRefObjType("user")
                 .build()
         );
+    }
+
+    public void sendDeleteResourceMessage(String message) {
+        kafkaTemplate.send(P8CKafkaTopic.DELETE_RESOURCE, message);
     }
 
 
