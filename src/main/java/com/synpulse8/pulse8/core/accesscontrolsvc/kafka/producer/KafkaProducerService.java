@@ -35,6 +35,7 @@ public class KafkaProducerService {
                 .setRelation(relationshipRequestDto.getRelation())
                 .setSubjRefObjId(relationshipRequestDto.getSubjRefObjId())
                 .setSubjRefObjType(relationshipRequestDto.getSubjRefObjType())
+                .setSubjRelation(relationshipRequestDto.getSubjRelation())
                 .build()
         );
 

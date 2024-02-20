@@ -28,6 +28,9 @@ spring:
         acks: all
     # add this config for consumer
     consumer:
+      group-id: ac.store.rel
+      auto-offset-reset: earliest
+      default-topic: create-relationship
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:

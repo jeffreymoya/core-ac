@@ -31,6 +31,12 @@
         "name": "subjRefObjId",
         "type": "string",
         "avro.java.string": "String"
+      },
+      {
+          "name": "subjRelation",
+          "type": ["null", "string"],
+          "default": null,
+          "avro.java.string": "String"
       }
     ]
 }
