@@ -1,8 +1,12 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.kafka.consumer;
 
 import com.authzed.api.v1.PermissionService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.RelationshipCreation;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaGroup;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaTopic;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsServiceImpl;
@@ -24,14 +28,18 @@ public class KafkaConsumerService {
     }
 
     @KafkaListener(topics = "create-relationship", groupId = "ac.rel")
-    public void receiveMessage(ConsumerRecord<String, RelationshipCreation> record) {
-        log.info(String.format("Consumed message -> %s", record.value()));
+    public void createRelationship(ConsumerRecord<String, RelationshipCreation> record) {
+        String updates = "{\"updates\":[" + record.value() + "]}";
+
+        try {
+
+            WriteRelationshipRequestDto writeRelationshipRequestDto = new ObjectMapper().readValue(updates, WriteRelationshipRequestDto.class);
+            log.info("Consumed details used for creating relationship :\n" + writeRelationshipRequestDto.toWriteRelationshipRequest());
+            permissionsService.writeRelationships(writeRelationshipRequestDto.toWriteRelationshipRequest());
+
+        } catch (JsonProcessingException e) {
+            log.debug(String.format("Error creating new relationship caused by: " + e.getMessage()));
+            throw new P8CException("Error creating new relationship.");
+        }
     }
-
-//    @KafkaListener(topics = P8CKafkaTopic.CREATE_RELATIONSHIP, groupId = "${consumer.group-id}")
-//    public CompletableFuture<PermissionService.WriteRelationshipsResponse> receiveMessage(PermissionService.WriteRelationshipsRequest writeRelationshipsRequest) {
-//        //Creating event consumer...
-//        return permissionsService.writeRelationships(writeRelationshipsRequest);
-//    }
-
 }
