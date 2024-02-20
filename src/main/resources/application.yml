@@ -15,14 +15,13 @@ spring:
   kafka:
     listener:
       missing-topics-fatal: false
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
     properties:
       schema:
         registry:
           url: ${SCHEMA_REGISTRY_URL}
     # add this config for producer
     producer:
-      bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:
@@ -34,7 +33,4 @@ spring:
       properties:
         specific:
           avro:
-#        metadata:
-#          max:
-#            age:
-#              ms: 300000
+            reader: true

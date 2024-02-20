@@ -61,8 +61,8 @@ services:
       SPICEDB_PORT: 50051
       SPICEDB_PRESHARED_KEY: test_key
       MONGODB_URI: mongodb://mongodb:27017/p8c-core-access-control
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-      SCHEMA_REGISTRY_URL: "schemaregistry:8084"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_URL: "http://schemaregistry:8081"
       SPRING_KAFKA_PRODUCER_ACKS: all
   echo-server:
     container_name: "echoserver"
@@ -136,9 +136,9 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2182"
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka:9092"
       SCHEMA_REGISTRY_HOST_NAME: schemaregistry
-      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8084"
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
     ports:
-      - 8084:8084
+      - 8081:8081
     networks:
       - pulse8-central-bridge
 networks:

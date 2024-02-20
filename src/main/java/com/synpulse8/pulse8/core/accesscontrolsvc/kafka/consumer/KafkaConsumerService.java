@@ -23,9 +23,9 @@ public class KafkaConsumerService {
         this.permissionsService = permissionsService;
     }
 
-    @KafkaListener(topics = "create-relationship", groupId = "schema-registry")
+    @KafkaListener(topics = "create-relationship", groupId = "ac.rel")
     public void receiveMessage(ConsumerRecord<String, RelationshipCreation> record) {
-        log.debug(String.format("Consumed message -> %s", record.value()));
+        log.info(String.format("Consumed message -> %s", record.value()));
     }
 
 //    @KafkaListener(topics = P8CKafkaTopic.CREATE_RELATIONSHIP, groupId = "${consumer.group-id}")

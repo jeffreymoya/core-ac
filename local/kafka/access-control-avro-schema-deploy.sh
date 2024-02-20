@@ -23,7 +23,7 @@ deploy_schema_list() {
             s1=${s%\"}
             topicName=${s1#\"}
 
-            url="http://localhost:8084/subjects/${topicName}-value/versions"
+            url="http://localhost:8081/subjects/${topicName}-value/versions"
 
             # Writing to dump file to prepare the payload.
             echo $(echo $fileContent | jq '{"schema":.|tostring}') >dump.txt
@@ -44,7 +44,7 @@ deploy_schema_list() {
 echo "\nWaiting for schema registry to be online...\n"
 response=0
 while [ $response -ne 200 ]; do
-    response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:8084)
+    response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:8081)
     if [ $response -eq 200 ]; then
         deploy_schema_list
     fi
