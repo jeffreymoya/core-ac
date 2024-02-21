@@ -53,7 +53,8 @@ public class KafkaSteps extends StepDefinitionBase {
 
     @When("a delete resource message is sent with resourceId {string} and resourceType {string}")
     public void aUserChecksTheDocument(String resourceId, String resourceType) {
-        kafkaTemplate.send(P8CKafkaTopic.DELETE_RESOURCE, new RelationshipDeletion(resourceId, resourceType));
+        deleteRelationshipMessage = new RelationshipDeletion(resourceId, resourceType);
+        kafkaTemplate.send(P8CKafkaTopic.DELETE_RESOURCE, deleteRelationshipMessage);
 
     }
 

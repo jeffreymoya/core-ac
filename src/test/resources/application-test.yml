@@ -24,7 +24,7 @@ spring:
     properties:
       schema:
         registry:
-          url: ${SCHEMA_REGISTRY_URL}
+          url: http://mock:8081
     # add this config for producer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
