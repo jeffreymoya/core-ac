@@ -253,9 +253,9 @@
 
     <profiles>
         <profile>
-            <id>local</id>
+            <id>default</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>
@@ -341,7 +341,7 @@
         <profile>
             <id>ci</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <repositories>
                 <repository>
