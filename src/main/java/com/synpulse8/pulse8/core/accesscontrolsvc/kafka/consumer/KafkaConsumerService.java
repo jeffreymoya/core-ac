@@ -1,18 +1,8 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.kafka.consumer;
 
-import com.authzed.api.v1.PermissionService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.synpulse8.pulse8.core.RelationshipCreation;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteSchemaRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CException;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaGroup;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaTopic;
-import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsServiceImpl;
 import lombok.extern.log4j.Log4j2;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -20,26 +10,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaConsumerService {
 
-    private final PermissionsServiceImpl permissionsService;
-
-    @Autowired
-    public KafkaConsumerService(PermissionsServiceImpl permissionsService){
-        this.permissionsService = permissionsService;
+    @KafkaListener(topics = P8CKafkaTopic.ARTICLE, groupId = P8CKafkaGroup.MAIN)
+    public void receiveMessage(String message) {
+        // Process the received message
+        log.debug("Received message: " + message);
     }
 
-    @KafkaListener(topics = "${spring.kafka.consumer.default-topic}" , groupId = "${spring.kafka.consumer.group-id}")
-    public void createRelationship(ConsumerRecord<String, RelationshipCreation> record) {
-        String updates = "{\"updates\":[" + record.value() + "]}";
-
-        try {
-
-            WriteRelationshipRequestDto writeRelationshipRequestDto = new ObjectMapper().readValue(updates, WriteRelationshipRequestDto.class);
-            log.info("Consumed details used for creating relationship :\n" + writeRelationshipRequestDto.toWriteRelationshipRequest());
-            permissionsService.writeRelationships(writeRelationshipRequestDto.toWriteRelationshipRequest());
-
-        } catch (JsonProcessingException e) {
-            log.debug(String.format("Error creating new relationship caused by: " + e.getMessage()));
-            throw new P8CException("Error creating new relationship.");
-        }
-    }
 }

@@ -1,11 +1,9 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.ApiError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
-import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.producer.KafkaProducerService;
+import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.producer.CreateRelationshipProducer;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +18,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,11 +35,11 @@ public class RelationshipController {
 
     private final PermissionsService permissionsService;
 
-    private final KafkaProducerService kafkaProducerService;
+    private final CreateRelationshipProducer createRelationshipProducer;
 
-    public RelationshipController(PermissionsService permissionsService, KafkaProducerService kafkaProducerService) {
+    public RelationshipController(PermissionsService permissionsService, CreateRelationshipProducer createRelationshipProducer) {
         this.permissionsService = permissionsService;
-        this.kafkaProducerService = kafkaProducerService;
+        this.createRelationshipProducer = createRelationshipProducer;
     }
 
     @PostMapping("/relationships")
@@ -124,6 +121,6 @@ public class RelationshipController {
             @ApiResponse(responseCode = "403", description = "Forbidden. No permission to write relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
     })
     public void createRelationship(@Valid @RequestBody RelationshipRequestDto requestBody) {
-        kafkaProducerService.createRelationship(requestBody);
+        createRelationshipProducer.createRelationship(requestBody);
     }
 }
