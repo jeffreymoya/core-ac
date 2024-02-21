@@ -13,21 +13,11 @@ import com.synpulse8.pulse8.core.RelationshipCreation;
 public class KafkaProducerService {
 
 
-    KafkaTemplate<String, String> kafkaTemplate;
-
     private final KafkaTemplate<String, RelationshipCreation> createRelationshipTemplate;
 
     @Autowired
-    public KafkaProducerService(KafkaTemplate<String, String> kafkaTemplate,
-                                KafkaTemplate<String, RelationshipCreation> createRelationshipTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
+    public KafkaProducerService(KafkaTemplate<String, RelationshipCreation> createRelationshipTemplate) {
         this.createRelationshipTemplate = createRelationshipTemplate;
-    }
-
-    public void sendMessage(String message) {
-
-        kafkaTemplate.send(P8CKafkaTopic.CREATE_RELATIONSHIP, "some-key", message);
-
     }
 
     public void createRelationship(String message){
@@ -42,11 +32,4 @@ public class KafkaProducerService {
                 .build()
         );
     }
-
-    public void sendDeleteResourceMessage(String message) {
-        kafkaTemplate.send(P8CKafkaTopic.DELETE_RESOURCE, message);
-    }
-
-
-
 }

@@ -32,7 +32,7 @@ public class DeleteRelationshipConsumer {
 
     @Getter
     private final CountDownLatch latch = new CountDownLatch(1);
-    @KafkaListener(topics = P8CKafkaTopic.DELETE_RESOURCE, groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = P8CKafkaTopic.DELETE_RESOURCE, groupId = "ac.rel")
     public void receiveDeleteResourceMessage(ConsumerRecord<String, RelationshipDeletion> message) {
         deleteRelationshipMessage = message.value();
         if (StringUtils.isBlank(deleteRelationshipMessage.getObjectId())) {

@@ -18,17 +18,25 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/p8c-core-access-control
   kafka:
+    listener:
+      missing-topics-fatal: false
+    bootstrap-servers: kafka:9092
     properties:
       schema:
         registry:
-          url: http://mock:8081
-    bootstrap-servers: localhost:9092
+          url: ${SCHEMA_REGISTRY_URL}
+    # add this config for producer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:
         acks: all
+    # add this config for consumer
     consumer:
-      group-id: main
-      auto-offset-reset: earliest
-      default-topic: general
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        specific:
+          avro:
+            reader: true
 

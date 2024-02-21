@@ -1,42 +1,33 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
+import com.synpulse8.pulse8.core.RelationshipDeletion;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.DeleteRelationshipMessage;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@EnableKafka
-@Configuration
+@TestConfiguration
 public class KafkaTestContainersConfiguration {
 
-    // KafkaProperties groups all properties prefixed with `spring.kafka`
     private final KafkaProperties props;
     KafkaTestContainersConfiguration(KafkaProperties kafkaProperties) {
         props = kafkaProperties;
-    }
-
-    @Bean
-    public Map<String, String> consumerConfigs() {
-        Map<String, String> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, PermissionsIntegrationTest.kafka.getBootstrapServers());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        return props;
     }
 
     /**
@@ -70,27 +61,23 @@ public class KafkaTestContainersConfiguration {
     }
 
     @Bean
-    public ProducerFactory<String, DeleteRelationshipMessage> producerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, PermissionsIntegrationTest.kafka.getBootstrapServers());
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        configProps.put(
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(configProps);
+    DefaultKafkaProducerFactory producerFactory() {
+        Map<String, Object> configs = props.buildProducerProperties();
+        configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, PermissionsIntegrationTest.kafka.getBootstrapServers());
+        return new DefaultKafkaProducerFactory<>(configs);
     }
 
     @Bean
     DefaultKafkaConsumerFactory consumerFactory() {
-        return new DefaultKafkaConsumerFactory(
-                props.buildConsumerProperties(),
-                new StringDeserializer(),
-                kafkaAvroDeserializer()
-        );
+        Map<String, Object> configs = props.buildConsumerProperties();
+        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, PermissionsIntegrationTest.kafka.getBootstrapServers());
+        return new DefaultKafkaConsumerFactory(configs);
     }
 
     @Bean
-    public KafkaTemplate<String, DeleteRelationshipMessage> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    ConcurrentKafkaListenerContainerFactory kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory();
+        factory.setConsumerFactory(consumerFactory());
+        return factory;
     }
 }
