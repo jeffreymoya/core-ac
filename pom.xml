@@ -215,11 +215,6 @@
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
             <version>${spring-boot-starter-data-mongodb.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.confluent/kafka-avro-serializer -->
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-avro-serializer</artifactId>
-        </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-schema-registry-client</artifactId>
@@ -258,9 +253,9 @@
 
     <profiles>
         <profile>
-            <id>default</id>
+            <id>local</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <build>
                 <plugins>
@@ -346,7 +341,7 @@
         <profile>
             <id>ci</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <repositories>
                 <repository>
