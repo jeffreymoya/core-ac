@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.synpulse8.pulse8.core</groupId>
-        <artifactId>root-dependency-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.1.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -215,21 +215,31 @@
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
             <version>${spring-boot-starter-data-mongodb.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.confluent/kafka-avro-serializer -->
+<!--        <dependency>-->
+<!--            <groupId>io.confluent</groupId>-->
+<!--            <artifactId>kafka-avro-serializer</artifactId>-->
+<!--            <version>7.5.1</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-schema-registry-client</artifactId>
+            <version>7.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
+            <version>1.11.3</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
+            <version>7.4.0</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
+            <version>7.4.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -315,25 +325,25 @@
                             </excludes>
                         </configuration>
                     </plugin>
-<!--                    <plugin>-->
-<!--                        <groupId>org.springdoc</groupId>-->
-<!--                        <artifactId>springdoc-openapi-maven-plugin</artifactId>-->
-<!--                        <version>${springdoc-openapi-maven-plugin.version}</version>-->
-<!--                        <executions>-->
-<!--                            <execution>-->
-<!--                                <id>integration-test</id>-->
-<!--                                <goals>-->
-<!--                                    <goal>generate</goal>-->
-<!--                                </goals>-->
-<!--                            </execution>-->
-<!--                        </executions>-->
-<!--                        <configuration>-->
-<!--                            <apiDocsUrl>http://localhost:8080/v3/api-docs</apiDocsUrl>-->
-<!--                            <outputFileName>openapi.json</outputFileName>-->
-<!--                            <outputDir>home/springdoc/maven-output</outputDir>-->
-<!--                            <skip>false</skip>-->
-<!--                        </configuration>-->
-<!--                    </plugin>-->
+                    <!--                    <plugin>-->
+                    <!--                        <groupId>org.springdoc</groupId>-->
+                    <!--                        <artifactId>springdoc-openapi-maven-plugin</artifactId>-->
+                    <!--                        <version>${springdoc-openapi-maven-plugin.version}</version>-->
+                    <!--                        <executions>-->
+                    <!--                            <execution>-->
+                    <!--                                <id>integration-test</id>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>generate</goal>-->
+                    <!--                                </goals>-->
+                    <!--                            </execution>-->
+                    <!--                        </executions>-->
+                    <!--                        <configuration>-->
+                    <!--                            <apiDocsUrl>http://localhost:8080/v3/api-docs</apiDocsUrl>-->
+                    <!--                            <outputFileName>openapi.json</outputFileName>-->
+                    <!--                            <outputDir>home/springdoc/maven-output</outputDir>-->
+                    <!--                            <skip>false</skip>-->
+                    <!--                        </configuration>-->
+                    <!--                    </plugin>-->
                 </plugins>
             </build>
         </profile>
