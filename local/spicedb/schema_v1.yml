@@ -30,3 +30,42 @@ definition organization{
 caveat attributes_match(expected map<any>, provided map<any>) {
     expected.isSubtreeOf(provided)
 }
+
+
+caveat expected_ip_range(user_ip ipaddress, allowed_range string) {
+    user_ip.in_cidr(allowed_range)
+}
+
+caveat time_of_day_restriction(now string, start_hour int, start_minutes int, end_hour int, end_minutes int, timezone_offset string) {
+    (
+        timestamp(now).getHours(timezone_offset) > start_hour ||
+        (
+            timestamp(now).getHours(timezone_offset) == start_hour && 
+            timestamp(now).getMinutes(timezone_offset) > start_minutes
+        ) ||
+        (
+            timestamp(now).getHours(timezone_offset) == start_hour && 
+            timestamp(now).getMinutes(timezone_offset) == start_minutes && 
+            timestamp(now).getSeconds(timezone_offset) > 0
+        ) ||
+        (
+            timestamp(now).getHours(timezone_offset) == start_hour && 
+            timestamp(now).getMinutes(timezone_offset) == start_minutes && 
+            timestamp(now).getSeconds(timezone_offset) == 0 && 
+            timestamp(now).getMilliseconds(timezone_offset) >= 0
+        )
+    ) &&
+    (
+        timestamp(now).getHours(timezone_offset) < end_hour ||
+        (
+            timestamp(now).getHours(timezone_offset) == end_hour && 
+            timestamp(now).getMinutes(timezone_offset) < end_minutes
+        ) ||
+        (
+            timestamp(now).getHours(timezone_offset) == end_hour && 
+            timestamp(now).getMinutes(timezone_offset) == end_minutes && 
+            timestamp(now).getSeconds(timezone_offset) == 0 && 
+            timestamp(now).getMilliseconds(timezone_offset) == 0
+        )
+    )
+}

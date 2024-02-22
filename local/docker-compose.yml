@@ -72,7 +72,7 @@ services:
     networks:
       - pulse8-central-bridge
   kong:
-    image: kong/kong-gateway:3.5
+    image: kong/kong-gateway:3.6
     container_name: pulse8-kong
     env_file:
       - docker-compose.env

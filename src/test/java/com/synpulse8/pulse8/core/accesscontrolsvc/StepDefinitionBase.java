@@ -99,4 +99,18 @@ public class StepDefinitionBase {
         then.statusCode(statusCode);
         token.set(null);
     }
+
+    protected void writeRelationships(JsonNode testNode) throws InterruptedException {
+        WriteRelationshipRequestDto request = objectMapper.convertValue(testNode, WriteRelationshipRequestDto.class);
+        permissionsService.writeRelationships(request.toWriteRelationshipRequest())
+                .thenAccept(r -> writeRelationshipToken.set(r.getWrittenAt().getToken()));
+        sleep(writeRelationshipToken);
+    }
+
+    protected void updateSchema(String schemaText) throws InterruptedException {
+        WriteSchemaRequestDto writeSchemaRequestBody = objectMapper.convertValue(Collections.singletonMap("schema", schemaText), WriteSchemaRequestDto.class);
+        schemaService.writeSchema(writeSchemaRequestBody.toWriteSchemaRequest()).join();
+        sleep(updateSchemaToken);
+    }
+
 }

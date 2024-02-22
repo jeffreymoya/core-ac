@@ -115,3 +115,20 @@ Feature: Permissions API
     When a user checks route permissions via "GET" with principal "1234" and route "/pulse8/123" and uriTemplate "/{resourceType}{/?}{resourceId:.*}"
     Then the response code should be 403
     And the response should contain "has_permission"
+
+  @CaveatScenario
+  Scenario: Check permission with caveats and context
+    Given the API is available
+    And the "caveat" is written in the schema and has relationships
+    When a user checks permission of "memberA" with "permitted" "ip" and principal "1234"
+    Then the response code should be 200
+    When a user checks permission of "memberA" with "forbidden" "ip" and principal "1234"
+    Then the response code should be 403
+    When a user checks permission of "memberA" with "permitted" "time" and principal "1234"
+    Then the response code should be 200
+    When a user checks permission of "memberA" with "forbidden" "time" and principal "1234"
+    Then the response code should be 403
+    When a user checks permission of "memberA" with "permitted" "attributes" and principal "1234"
+    Then the response code should be 200
+    When a user checks permission of "memberA" with "forbidden" "attributes" and principal "1234"
+    Then the response code should be 403

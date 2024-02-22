@@ -3,6 +3,7 @@ p8c:
   security:
     principal-header: "X-Authenticated-User"
     roles-header: "X-Authenticated-Roles"
+    client-ip-header: "X-Forwarded-For"
   route-check:
     constants:
       objectType: "route"

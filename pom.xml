@@ -30,6 +30,8 @@
         <grpc-protobuf.version>1.59.0</grpc-protobuf.version>
         <grpc-stub.version>1.59.0</grpc-stub.version>
         <grpc-netty-shaded.version>1.59.0</grpc-netty-shaded.version>
+        <kafka-testcontainers.version>1.19.3</kafka-testcontainers.version>
+        <spring-kafka-test.version>3.1.1</spring-kafka-test.version>
 
         <sonar.exclusions>
             **/P8CApplication.java,
@@ -191,10 +193,22 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <version>${kafka-testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
             <version>${grpc-netty-shaded.version}</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <version>${spring-kafka-test.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
