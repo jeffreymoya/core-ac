@@ -34,3 +34,4 @@ build/
 .vscode/
 /local/postgres/
 /local/data/db/
+/local/logs/

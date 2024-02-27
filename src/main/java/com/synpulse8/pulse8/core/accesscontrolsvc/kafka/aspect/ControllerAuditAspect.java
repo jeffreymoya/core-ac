@@ -35,6 +35,11 @@ public class ControllerAuditAspect {
         beforeControllerMethod(P8CKafkaTopic.LOGS_ATTRIBUTES, joinPoint);
     }
 
+    @Before("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.RelationshipController.*(..))")
+    private void beforeRelationshipControllerMethod(JoinPoint joinPoint) throws JsonProcessingException {
+        beforeControllerMethod(P8CKafkaTopic.LOGS_RELATIONSHIPS, joinPoint);
+    }
+
     private void beforeControllerMethod(String topic, JoinPoint joinPoint) throws JsonProcessingException {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String methodName = request.getMethod();

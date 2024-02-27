@@ -15,8 +15,26 @@
             <MarkerFilter marker="logs-attributes" onMatch="ACCEPT" onMismatch="DENY"/>
         </Kafka>
 
+        <Kafka name="KAFKA_LOGS_RELATIONSHIPS" topic="logs-relationships">
+            <PatternLayout pattern="${pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap.servers}</Property>
+            <MarkerFilter marker="logs-relationships" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
+        <RollingFile name="RollingFile" fileName="logs/app.log"
+                     filePattern="logs/$${date:yyyy-MM}/app-%d{yyyy-MM-dd-HH}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="2" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+        </RollingFile>
+
         <Async name="Async">
             <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
+            <AppenderRef ref="KAFKA_LOGS_RELATIONSHIPS"/>
         </Async>
     </Appenders>
 
@@ -26,8 +44,14 @@
             <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
         </Logger>
 
+        <Logger name="com.synpulse8.pulse8.core.accesscontrolsvc.kafka.aspect.ControllerAuditAspect" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="KAFKA_LOGS_RELATIONSHIPS"/>
+        </Logger>
+
         <Root level="INFO">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
         </Root>
     </Loggers>
 </Configuration>
