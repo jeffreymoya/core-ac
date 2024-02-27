@@ -1,5 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
+import io.cucumber.java.BeforeAll;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
@@ -24,6 +25,8 @@ import org.testcontainers.utility.DockerImageName;
 @ContextConfiguration(initializers = PermissionsIntegrationTest.DataSourceInitializer.class)
 public class PermissionsIntegrationTest {
 
+    public static String bootstrapServers;
+
     @Container
     public static GenericContainer<?> spicedb = new GenericContainer<>(
             DockerImageName.parse("authzed/spicedb:latest"))
@@ -44,7 +47,6 @@ public class PermissionsIntegrationTest {
         public void initialize(ConfigurableApplicationContext applicationContext) {
             spicedb.start();
             mongodb.start();
-            kafka.start();
             TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
                     applicationContext,
                     "SPICEDB_HOST=" + spicedb.getHost(),
@@ -54,4 +56,12 @@ public class PermissionsIntegrationTest {
             );
         }
     }
+
+    @BeforeAll
+    public static void startKafkaContainer() {
+        kafka.start();
+        bootstrapServers = kafka.getBootstrapServers();
+        System.setProperty("spring.kafka.bootstrap-servers", bootstrapServers);
+    }
+
 }
