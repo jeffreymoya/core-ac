@@ -85,4 +85,14 @@ public class KafkaTestContainersConfiguration {
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerLog4jContainerFactory() {
+        Map<String, Object> configs = props.buildConsumerProperties();
+        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, PermissionsIntegrationTest.kafka.getBootstrapServers());
+        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "ac.audit.role");
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<String, String>(configs));
+        return factory;
+    }
 }

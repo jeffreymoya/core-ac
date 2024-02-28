@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaTopic;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.AuditLog;
 import jakarta.servlet.http.HttpServletRequest;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -36,6 +38,11 @@ public class ControllerAuditAspect {
     @Around("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.AttributeController.*(..))")
     private CompletableFuture<?> aroundAttributeControllerMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         return aroundControllerMethod(P8CKafkaTopic.LOGS_ATTRIBUTES, joinPoint);
+    }
+
+    @Before("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.RoleController.*(..))")
+    private void beforeRoleControllerMethod(JoinPoint joinPoint) throws JsonProcessingException {
+        beforeControllerMethod(P8CKafkaTopic.LOGS_ATTRIBUTES, joinPoint);
     }
 
     private CompletableFuture<?> aroundControllerMethod(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
