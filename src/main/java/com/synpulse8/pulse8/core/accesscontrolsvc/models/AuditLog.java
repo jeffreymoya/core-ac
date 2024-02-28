@@ -8,11 +8,14 @@ import lombok.Getter;
 public class AuditLog {
 
     private String timestamp;
-    private String userId;
-    private String methodName;
     private String topic;
+    private String methodName;
     private String path;
     private String queryString;
-    private String details;
+    private String userId;
+    private String stepName;
+    private String requestArgs;
+    private String errorMessage;
+    private String response;
 
 }
