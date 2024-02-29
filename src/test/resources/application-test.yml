@@ -1,15 +1,15 @@
 logging:
-    level:
-      com:
-        synpulse8:
-          pulse8:
-            core:
-              accesscontrolsvc: debug
-      root: debug
-      org:
-        apache:
-          kafka: off
-        web: debug
+  level:
+    com:
+      synpulse8:
+        pulse8:
+          core:
+            accesscontrolsvc: debug
+    root: debug
+    org:
+      apache:
+        kafka: off
+      web: debug
 
 spring:
   main:
