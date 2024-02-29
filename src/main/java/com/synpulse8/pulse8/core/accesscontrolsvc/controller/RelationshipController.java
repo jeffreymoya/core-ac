@@ -35,11 +35,8 @@ public class RelationshipController {
 
     private final PermissionsService permissionsService;
 
-    private final CreateRelationshipProducer createRelationshipProducer;
-
-    public RelationshipController(PermissionsService permissionsService, CreateRelationshipProducer createRelationshipProducer) {
+    public RelationshipController(PermissionsService permissionsService) {
         this.permissionsService = permissionsService;
-        this.createRelationshipProducer = createRelationshipProducer;
     }
 
     @PostMapping("/relationships")
@@ -114,13 +111,4 @@ public class RelationshipController {
                 .thenApply(x -> ResponseEntity.noContent().build());
     }
 
-    @PostMapping("/relationships/create")
-    @Operation(description = "Store Relationships", summary = "Endpoint to store relationships.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully wrote relationships", content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden. No permission to write relationships", content = @Content(schema = @Schema(implementation = ApiError.class))),
-    })
-    public void createRelationship(@Valid @RequestBody RelationshipRequestDto requestBody) {
-        createRelationshipProducer.createRelationship(requestBody);
-    }
 }
