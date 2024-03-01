@@ -1,11 +1,9 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.controller;
 
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.DeleteRelationshipRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipRequestDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.ReadRelationshipResponseDto;
-import com.synpulse8.pulse8.core.accesscontrolsvc.dto.WriteRelationshipRequestDto;
+import com.synpulse8.pulse8.core.accesscontrolsvc.dto.*;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.ApiError;
 import com.synpulse8.pulse8.core.accesscontrolsvc.exception.P8CError;
+import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.producer.CreateRelationshipProducer;
 import com.synpulse8.pulse8.core.accesscontrolsvc.service.PermissionsService;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -112,4 +110,5 @@ public class RelationshipController {
         return permissionsService.deleteRelationships(requestParams.toDeleteRelationshipsRequest())
                 .thenApply(x -> ResponseEntity.noContent().build());
     }
+
 }

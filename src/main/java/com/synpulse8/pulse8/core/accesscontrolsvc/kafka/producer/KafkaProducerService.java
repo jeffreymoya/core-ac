@@ -1,5 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc.kafka.producer;
 
+
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaTopic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;

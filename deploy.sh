@@ -11,3 +11,11 @@ sh ./compile.sh
 
 printStep "Deploy pulse8-core-access-control image".
 docker compose -f local/docker-compose.yml up -d --build
+
+# Create topics for schemas.
+printStep "Create topics"
+bash ./local/kafka/pulse8-store-relationship-topics.sh
+
+# Deploy avro schemas.
+printStep "Deploy avro schemas"
+sh ./local/kafka/access-control-avro-schema-deploy.sh ./local/kafka/avro/

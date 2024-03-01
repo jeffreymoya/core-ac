@@ -4,10 +4,12 @@ import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -16,6 +18,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @CucumberContextConfiguration
 @ActiveProfiles("test")
+@Import(KafkaTestContainersConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @ContextConfiguration(initializers = PermissionsIntegrationTest.DataSourceInitializer.class)
@@ -31,6 +34,9 @@ public class PermissionsIntegrationTest {
     @Container
     public static MongoDBContainer mongodb = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
 
+    public static KafkaContainer kafka =
+            new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:5.4.3"));
+
 
     public static class DataSourceInitializer
             implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -38,6 +44,7 @@ public class PermissionsIntegrationTest {
         public void initialize(ConfigurableApplicationContext applicationContext) {
             spicedb.start();
             mongodb.start();
+            kafka.start();
             TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
                     applicationContext,
                     "SPICEDB_HOST=" + spicedb.getHost(),
