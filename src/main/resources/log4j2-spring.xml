@@ -14,6 +14,7 @@
         <Kafka name="KAFKA_LOGS_ATTRIBUTES" topic="logs-attributes">
             <PatternLayout pattern="${message_pattern}"/>
             <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
             <MarkerFilter marker="logs-attributes" onMatch="ACCEPT" onMismatch="DENY"/>
         </Kafka>
 
