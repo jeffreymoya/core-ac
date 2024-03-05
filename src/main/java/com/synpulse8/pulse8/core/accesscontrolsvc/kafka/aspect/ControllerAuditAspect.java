@@ -5,11 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.P8CKafkaTopic;
 import com.synpulse8.pulse8.core.accesscontrolsvc.models.AuditLog;
 import jakarta.servlet.http.HttpServletRequest;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -40,9 +38,9 @@ public class ControllerAuditAspect {
         return aroundControllerMethod(P8CKafkaTopic.LOGS_ATTRIBUTES, joinPoint);
     }
 
-    @Before("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.RoleController.*(..))")
-    private void beforeRoleControllerMethod(JoinPoint joinPoint) throws JsonProcessingException {
-        beforeControllerMethod(P8CKafkaTopic.LOGS_ATTRIBUTES, joinPoint);
+    @Around("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.RoleController.*(..))")
+    private CompletableFuture<?> aroundRoleControllerMethod(ProceedingJoinPoint joinPoint) throws Throwable {
+        return aroundControllerMethod(P8CKafkaTopic.LOGS_ROLES, joinPoint);
     }
 
     private CompletableFuture<?> aroundControllerMethod(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
@@ -62,9 +60,10 @@ public class ControllerAuditAspect {
     public void processResponseDetails(String topic, CompletableFuture<?> resultFuture, AuditLog.AuditLogBuilder builder) throws JsonProcessingException {
         if (resultFuture == null) logAsync(topic, builder.build());
         else {
-            resultFuture.thenAcceptAsync(response -> {
+            resultFuture.whenCompleteAsync((response, throwable) -> {
                 try {
-                    builder.response(objectMapper.writeValueAsString(response));
+                    if (throwable != null) builder.errorMessage(throwable.getMessage());
+                    else builder.response(objectMapper.writeValueAsString(response));
                     logAsync(topic, builder.build());
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
