@@ -18,6 +18,13 @@
             <MarkerFilter marker="logs-attributes" onMatch="ACCEPT" onMismatch="DENY"/>
         </Kafka>
 
+        <Kafka name="KAFKA_LOGS_ROLES" topic="logs-roles">
+            <PatternLayout pattern="${message_pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
+            <MarkerFilter marker="logs-roles" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
         <SpringProfile name="default">
             <RollingFile name="FILE_KAFKA_LOGS_ATTRIBUTES" fileName="${log_path}/attributes/LOGS_ATTRIBUTES.log"
                          filePattern="${log_path}/attributes/archived/LOGS_ATTRIBUTES-%d{yyyy-MM-dd}.log">
@@ -29,11 +36,26 @@
                 <DefaultRolloverStrategy max="10"/>
                 <MarkerFilter marker="logs-attributes" onMatch="ACCEPT" onMismatch="DENY"/>
             </RollingFile>
+
+            <RollingFile name="FILE_KAFKA_LOGS_ROLES" fileName="${log_path}/roles/LOGS_ROLES.log"
+                         filePattern="${log_path}/roles/archived/LOGS_ROLES-%d{yyyy-MM-dd}.log">
+                <PatternLayout pattern="${message_pattern}"/>
+                <Policies>
+                    <TimeBasedTriggeringPolicy/>
+                    <SizeBasedTriggeringPolicy size="10 MB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="10"/>
+                <MarkerFilter marker="logs-roles" onMatch="ACCEPT" onMismatch="DENY"/>
+            </RollingFile>
         </SpringProfile>
 
         <Async name="Async">
             <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
-            <AppenderRef ref="FILE_KAFKA_LOGS_ATTRIBUTES"/>
+            <AppenderRef ref="KAFKA_LOGS_ROLES"/>
+            <SpringProfile name="default">
+                <AppenderRef ref="FILE_KAFKA_LOGS_ATTRIBUTES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_ROLES"/>
+            </SpringProfile>
         </Async>
     </Appenders>
 
@@ -41,8 +63,10 @@
         <Logger name="com.synpulse8.pulse8.core.accesscontrolsvc.kafka.aspect.ControllerAuditAspect" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
+            <AppenderRef ref="KAFKA_LOGS_ROLES"/>
             <SpringProfile name="default">
                 <AppenderRef ref="FILE_KAFKA_LOGS_ATTRIBUTES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_ROLES"/>
             </SpringProfile>
         </Logger>
 

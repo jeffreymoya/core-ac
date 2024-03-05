@@ -5,6 +5,7 @@ create_topic() {
         create-relationship,
         delete-relationship
         logs-attributes
+        logs-roles
      )
         echo -e "zookeeper:2182 partition 1 replication-factor 1"
         for topicName in ${topicList[*]}; do
