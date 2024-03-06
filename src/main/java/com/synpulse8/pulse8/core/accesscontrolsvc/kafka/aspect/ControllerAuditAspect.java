@@ -43,7 +43,25 @@ public class ControllerAuditAspect {
         return aroundControllerMethod(P8CKafkaTopic.LOGS_ROLES, joinPoint);
     }
 
+    @Around("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.RelationshipController.*(..))")
+    private CompletableFuture<?> aroundRelationshipControllerMethod(ProceedingJoinPoint joinPoint) throws Throwable {
+        return aroundControllerMethodRelationship(P8CKafkaTopic.LOGS_RELATIONSHIPS, joinPoint);
+    }
+
     private CompletableFuture<?> aroundControllerMethod(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
+        AuditLog.AuditLogBuilder builder = captureRequestDetails(topic, joinPoint);
+        try {
+            CompletableFuture<?> resultFuture = (CompletableFuture<?>) joinPoint.proceed();
+            processResponseDetails(topic, resultFuture, builder);
+            return resultFuture;
+        } catch (Throwable throwable) {
+            builder.errorMessage(throwable.getMessage());
+            logAsync(topic, builder.build());
+            throw throwable;
+        }
+    }
+
+    private CompletableFuture<?> aroundControllerMethodRelationship(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
         AuditLog.AuditLogBuilder builder = captureRequestDetails(topic, joinPoint);
         try {
             CompletableFuture<?> resultFuture = (CompletableFuture<?>) joinPoint.proceed();
