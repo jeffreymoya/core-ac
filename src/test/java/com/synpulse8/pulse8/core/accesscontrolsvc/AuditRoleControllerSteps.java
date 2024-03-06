@@ -25,12 +25,9 @@ public class AuditRoleControllerSteps extends StepDefinitionBase {
 
     private final AuditLogConsumerTest consumer;
 
-    private final PermissionsSteps permissionsSteps;
-
-    public AuditRoleControllerSteps(SchemaService schemaService, PermissionsService permissionsService, ObjectMapper objectMapper, AuditLogConsumerTest consumer, PermissionsSteps permissionsSteps) {
+    public AuditRoleControllerSteps(SchemaService schemaService, PermissionsService permissionsService, ObjectMapper objectMapper, AuditLogConsumerTest consumer) {
         super(schemaService, permissionsService, objectMapper);
         this.consumer = consumer;
-        this.permissionsSteps = permissionsSteps;
     }
 
     @Before
@@ -59,34 +56,15 @@ public class AuditRoleControllerSteps extends StepDefinitionBase {
 
     @Then("the role log should contain a message with the role topic")
     public void theRoleLogShouldContainAMessageWithTheTopic() throws InterruptedException {
-        boolean messageConsumed = consumer.getRoleLatch().await(15, TimeUnit.SECONDS);
+        boolean messageConsumed = consumer.getRoleLatch().await(10, TimeUnit.SECONDS);
         assertTrue(messageConsumed);
         assertTrue("Log contains the expected topic", consumer.getRolesAuditLog().contains(P8CKafkaTopic.LOGS_ROLES));
     }
 
-    @And("the {string} relationships is written")
-    public void theRelationshipsIsWritten(String relation) throws InterruptedException {
-        JsonNode testNode = testInput.path("relationships")
-                .path("update")
-                .path(relation);
-        writeRelationships(testNode);
-    }
-
-    @When("a user reads {string} relationship with principal {string}")
-    public void aUserReadsRelationshipWithPrincipal(String relation, String principal) {
-        JsonNode testNode = testInput.path("relationships")
-                .path("view")
-                .path(relation)
-                .path("request");
-        final RequestSpecification builder = permissionsSteps.createRequestSpecificationBuilder(principal, HttpMethodPermission.GET);
-        String url = "/v1/relationships" + permissionsSteps.createRequestQueryString(testNode);
-        response = builder.when().get(url);
-    }
-
     @And("the attribute log should contain a message with the relationship topic")
     public void theAttributeLogShouldContainAMessageWithTheRelationshipTopic() throws InterruptedException {
-        boolean messageConsumed = consumer.getRoleLatch().await(15, TimeUnit.SECONDS);
+        boolean messageConsumed = consumer.getRelationshipLatch().await(10, TimeUnit.SECONDS);
         assertTrue(messageConsumed);
-        assertTrue("Log contains the expected topic", consumer.getRolesAuditLog().contains(P8CKafkaTopic.LOGS_RELATIONSHIPS));
+        assertTrue("Log contains the expected topic", consumer.getRelationshipsAuditLog().contains(P8CKafkaTopic.LOGS_RELATIONSHIPS));
     }
 }

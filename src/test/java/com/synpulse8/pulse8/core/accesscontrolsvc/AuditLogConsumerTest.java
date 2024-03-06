@@ -15,9 +15,13 @@ public class AuditLogConsumerTest {
 
     private String rolesAuditLog;
 
+    private String relationshipsAuditLog;
+
     private final CountDownLatch attributeLatch = new CountDownLatch(1);
 
     private final CountDownLatch roleLatch = new CountDownLatch(1);
+
+    private final CountDownLatch relationshipLatch = new CountDownLatch(1);
 
     @KafkaListener(topics = P8CKafkaTopic.LOGS_ATTRIBUTES, groupId = "ac.audit.role", containerFactory = "kafkaListenerLog4jContainerFactory")
     public void attributeListener(String record) {
@@ -29,6 +33,12 @@ public class AuditLogConsumerTest {
     public void roleListener(String record) {
         rolesAuditLog = record;
         roleLatch.countDown();
+    }
+
+    @KafkaListener(topics = P8CKafkaTopic.LOGS_RELATIONSHIPS, groupId = "ac.audit.role", containerFactory = "kafkaListenerLog4jContainerFactory")
+    public void relationshipListener(String record) {
+        relationshipsAuditLog = record;
+        relationshipLatch.countDown();
     }
 
 }
