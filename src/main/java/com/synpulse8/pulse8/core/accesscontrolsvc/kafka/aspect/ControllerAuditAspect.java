@@ -38,9 +38,9 @@ public class ControllerAuditAspect {
         return aroundControllerMethod(P8CKafkaTopic.LOGS_ATTRIBUTES, joinPoint);
     }
 
-    @Around("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.RelationshipController.*(..))")
-    private CompletableFuture<?> aroundRelationshipControllerMethod(ProceedingJoinPoint joinPoint) throws Throwable {
-        return aroundControllerMethod(P8CKafkaTopic.LOGS_RELATIONSHIPS, joinPoint);
+    @Around("execution(* com.synpulse8.pulse8.core.accesscontrolsvc.controller.RoleController.*(..))")
+    private CompletableFuture<?> aroundRoleControllerMethod(ProceedingJoinPoint joinPoint) throws Throwable {
+        return aroundControllerMethod(P8CKafkaTopic.LOGS_ROLES, joinPoint);
     }
 
     private CompletableFuture<?> aroundControllerMethod(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
@@ -60,9 +60,10 @@ public class ControllerAuditAspect {
     public void processResponseDetails(String topic, CompletableFuture<?> resultFuture, AuditLog.AuditLogBuilder builder) throws JsonProcessingException {
         if (resultFuture == null) logAsync(topic, builder.build());
         else {
-            resultFuture.thenAcceptAsync(response -> {
+            resultFuture.whenCompleteAsync((response, throwable) -> {
                 try {
-                    builder.response(objectMapper.writeValueAsString(response));
+                    if (throwable != null) builder.errorMessage(throwable.getMessage());
+                    else builder.response(objectMapper.writeValueAsString(response));
                     logAsync(topic, builder.build());
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
