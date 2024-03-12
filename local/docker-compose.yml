@@ -64,6 +64,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SCHEMA_REGISTRY_URL: "http://schemaregistry:8081"
       SPRING_KAFKA_PRODUCER_ACKS: all
+      KAFKA_CONSUMER_ENABLED: true
     volumes:
       - ./logs:/logs
   echo-server:
