@@ -8,6 +8,9 @@ p8c:
     constants:
       objectType: "route"
       subjectType: "user"
+  logs:
+    path:
+      local: /logs
 
 spring:
   data:

@@ -1,7 +1,6 @@
 package com.synpulse8.pulse8.core.accesscontrolsvc;
 
-import com.synpulse8.pulse8.core.RelationshipDeletion;
-import com.synpulse8.pulse8.core.accesscontrolsvc.kafka.DeleteRelationshipMessage;
+import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -11,16 +10,10 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @TestConfiguration
@@ -83,6 +76,18 @@ public class KafkaTestContainersConfiguration {
     ConcurrentKafkaListenerContainerFactory kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory();
         factory.setConsumerFactory(consumerFactory());
+        return factory;
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerLog4jContainerFactory() {
+        Map<String, Object> configs = props.buildConsumerProperties();
+        configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, PermissionsIntegrationTest.kafka.getBootstrapServers());
+        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "ac.audit.role");
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory(configs,
+                new StringDeserializer(),
+                new StringDeserializer()));
         return factory;
     }
 }
