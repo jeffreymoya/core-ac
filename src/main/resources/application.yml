@@ -8,7 +8,12 @@ p8c:
     constants:
       objectType: "route"
       subjectType: "user"
-
+  kafka:
+    topics:
+      create_relationship: "create-relationship"
+      delete_relationship: "delete-relationship"
+      update_relationship: "update-relationship"
+      update_delete_relationship: "delete-specific-relationship"
 spring:
   data:
     mongodb:

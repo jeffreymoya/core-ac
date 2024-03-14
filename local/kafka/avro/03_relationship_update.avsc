@@ -1,0 +1,47 @@
+{
+  "type": "record",
+  "namespace": "com.synpulse8.pulse8.core",
+  "name": "RelationshipUpdate",
+  "doc": "update-relationship|Schema for Updating a Relationship",
+  "aliases": [
+    "UPDATE_RELATIONSHIP"
+  ],
+  "fields": [
+      {
+        "name": "operation",
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      {
+        "name": "objectType",
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      {
+        "name": "objectId",
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      {
+        "name": "relation",
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      {
+        "name": "subjRefObjType",
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      {
+        "name": "subjRefObjId",
+        "type": "string",
+        "avro.java.string": "String"
+      },
+      {
+          "name": "subjRelation",
+          "type": ["null", "string"],
+          "default": null,
+          "avro.java.string": "String"
+      }
+    ]
+}
