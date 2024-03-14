@@ -11,9 +11,6 @@ p8c:
   logs:
     path:
       local: /logs
-  kafka:
-    consumer:
-      enabled: ${KAFKA_CONSUMER_ENABLED:true}
 
 spring:
   data:
