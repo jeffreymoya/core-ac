@@ -9,7 +9,8 @@
   "fields": [
       {
         "name": "operation",
-        "type": "string",
+        "type": ["null", "string"],
+        "default": null,
         "avro.java.string": "String"
       },
       {
