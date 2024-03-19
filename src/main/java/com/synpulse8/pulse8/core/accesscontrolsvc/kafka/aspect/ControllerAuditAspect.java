@@ -78,7 +78,19 @@ public class ControllerAuditAspect {
         return aroundControllerMethodRelationship(P8CKafkaTopic.LOGS_RELATIONSHIPS, joinPoint);
     }
 
-    private CompletableFuture<?> aroundControllerMethod(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
+    private CompletableFuture<?> aroundControllerMethodRelationship(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
+        AuditLog.AuditLogBuilder builder = captureRequestDetails(topic, joinPoint);
+        try {
+            CompletableFuture<?> resultFuture = (CompletableFuture<?>) joinPoint.proceed();
+            processResponseDetails(resultFuture, builder);
+            return resultFuture;
+        } catch (Throwable throwable) {
+            builder.errorMessage(throwable.getMessage());
+            logAsync(builder.build());
+            throw throwable;
+        }
+    }
+
     private Object aroundControllerMethod(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
         AuditLog.AuditLogBuilder builder = captureRequestDetails(topic, joinPoint);
         try {
@@ -88,19 +100,6 @@ public class ControllerAuditAspect {
         } catch (Throwable throwable) {
             builder.errorMessage(getErrorMessage(throwable));
             logAsync(builder.build());
-            throw throwable;
-        }
-    }
-
-    private CompletableFuture<?> aroundControllerMethodRelationship(String topic, ProceedingJoinPoint joinPoint) throws Throwable {
-        AuditLog.AuditLogBuilder builder = captureRequestDetails(topic, joinPoint);
-        try {
-            CompletableFuture<?> resultFuture = (CompletableFuture<?>) joinPoint.proceed();
-            processResponseDetails(topic, resultFuture, builder);
-            return resultFuture;
-        } catch (Throwable throwable) {
-            builder.errorMessage(throwable.getMessage());
-            logAsync(topic, builder.build());
             throw throwable;
         }
     }

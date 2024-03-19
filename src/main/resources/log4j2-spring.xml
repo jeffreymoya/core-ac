@@ -25,7 +25,7 @@
             <MarkerFilter marker="logs-roles" onMatch="ACCEPT" onMismatch="DENY"/>
         </Kafka>
 
-        <Kafka name="KAFKA_LOGS_ROLES" topic="logs-relationships">
+        <Kafka name="KAFKA_LOGS_RELATIONSHIPS" topic="logs-relationships">
             <PatternLayout pattern="${message_pattern}"/>
             <Property name="bootstrap.servers">${bootstrap_servers}</Property>
             <Property name="client.id">log4j-producer</Property>
