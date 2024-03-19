@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Properties>
+        <Property name="console_pattern">%highlight{%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'} [%t] %highlight([%.-5level]) %-50logger{36} : %msg%n}</Property>
+        <Property name="message_pattern">%msg%n</Property>
+        <Property name="bootstrap_servers">${spring:spring.kafka.bootstrap-servers}</Property>
+        <Property name="log_path">${spring:p8c.logs.path.local}</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${console_pattern}"/>
+        </Console>
+
+        <Kafka name="KAFKA_LOGS_ATTRIBUTES" topic="logs-attributes">
+            <PatternLayout pattern="${message_pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
+            <MarkerFilter marker="logs-attributes" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
+        <Kafka name="KAFKA_LOGS_ROLES" topic="logs-roles">
+            <PatternLayout pattern="${message_pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
+            <MarkerFilter marker="logs-roles" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
+        <Kafka name="KAFKA_LOGS_PERMISSIONS" topic="logs-permissions">
+            <PatternLayout pattern="${message_pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
+            <MarkerFilter marker="logs-permissions" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
+        <Kafka name="KAFKA_LOGS_POLICIES" topic="logs-policies">
+            <PatternLayout pattern="${message_pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
+            <MarkerFilter marker="logs-policies" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
+        <Kafka name="KAFKA_LOGS_SCHEMAS" topic="logs-schemas">
+            <PatternLayout pattern="${message_pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
+            <MarkerFilter marker="logs-schemas" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
+
+        <SpringProfile name="default">
+            <RollingFile name="FILE_KAFKA_LOGS_ATTRIBUTES" fileName="${log_path}/attributes/LOGS_ATTRIBUTES.log"
+                         filePattern="${log_path}/attributes/archived/LOGS_ATTRIBUTES-%d{yyyy-MM-dd}.log">
+                <PatternLayout pattern="${message_pattern}"/>
+                <Policies>
+                    <TimeBasedTriggeringPolicy/>
+                    <SizeBasedTriggeringPolicy size="10 MB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="10"/>
+                <MarkerFilter marker="logs-attributes" onMatch="ACCEPT" onMismatch="DENY"/>
+            </RollingFile>
+
+            <RollingFile name="FILE_KAFKA_LOGS_ROLES" fileName="${log_path}/roles/LOGS_ROLES.log"
+                         filePattern="${log_path}/roles/archived/LOGS_ROLES-%d{yyyy-MM-dd}.log">
+                <PatternLayout pattern="${message_pattern}"/>
+                <Policies>
+                    <TimeBasedTriggeringPolicy/>
+                    <SizeBasedTriggeringPolicy size="10 MB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="10"/>
+                <MarkerFilter marker="logs-roles" onMatch="ACCEPT" onMismatch="DENY"/>
+            </RollingFile>
+
+            <RollingFile name="FILE_KAFKA_LOGS_PERMISSIONS" fileName="${log_path}/permissions/LOGS_PERMISSIONS.log"
+                         filePattern="${log_path}/permissions/archived/LOGS_PERMISSIONS-%d{yyyy-MM-dd}.log">
+                <PatternLayout pattern="${message_pattern}"/>
+                <Policies>
+                    <TimeBasedTriggeringPolicy/>
+                    <SizeBasedTriggeringPolicy size="10 MB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="10"/>
+                <MarkerFilter marker="logs-permissions" onMatch="ACCEPT" onMismatch="DENY"/>
+            </RollingFile>
+
+            <RollingFile name="FILE_KAFKA_LOGS_POLICIES" fileName="${log_path}/policies/LOGS_POLICIES.log"
+                         filePattern="${log_path}/policies/archived/LOGS_POLICIES-%d{yyyy-MM-dd}.log">
+                <PatternLayout pattern="${message_pattern}"/>
+                <Policies>
+                    <TimeBasedTriggeringPolicy/>
+                    <SizeBasedTriggeringPolicy size="10 MB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="10"/>
+                <MarkerFilter marker="logs-policies" onMatch="ACCEPT" onMismatch="DENY"/>
+            </RollingFile>
+
+            <RollingFile name="FILE_KAFKA_LOGS_SCHEMAS" fileName="${log_path}/schemas/LOGS_SCHEMAS.log"
+                         filePattern="${log_path}/schemas/archived/LOGS_SCHEMAS-%d{yyyy-MM-dd}.log">
+                <PatternLayout pattern="${message_pattern}"/>
+                <Policies>
+                    <TimeBasedTriggeringPolicy/>
+                    <SizeBasedTriggeringPolicy size="10 MB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="10"/>
+                <MarkerFilter marker="logs-schemas" onMatch="ACCEPT" onMismatch="DENY"/>
+            </RollingFile>
+        </SpringProfile>
+
+        <Async name="Async">
+            <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
+            <AppenderRef ref="KAFKA_LOGS_ROLES"/>
+            <AppenderRef ref="KAFKA_LOGS_PERMISSIONS"/>
+            <AppenderRef ref="KAFKA_LOGS_POLICIES"/>
+            <AppenderRef ref="KAFKA_LOGS_SCHEMAS"/>
+            <SpringProfile name="default">
+                <AppenderRef ref="FILE_KAFKA_LOGS_ATTRIBUTES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_ROLES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_PERMISSIONS"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_POLICIES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_SCHEMAS"/>
+            </SpringProfile>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="com.synpulse8.pulse8.core.accesscontrolsvc.kafka.aspect.ControllerAuditAspect" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
+            <AppenderRef ref="KAFKA_LOGS_ROLES"/>
+            <AppenderRef ref="KAFKA_LOGS_PERMISSIONS"/>
+            <AppenderRef ref="KAFKA_LOGS_POLICIES"/>
+            <AppenderRef ref="KAFKA_LOGS_SCHEMAS"/>
+            <SpringProfile name="default">
+                <AppenderRef ref="FILE_KAFKA_LOGS_ATTRIBUTES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_ROLES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_PERMISSIONS"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_POLICIES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_SCHEMAS"/>
+            </SpringProfile>
+        </Logger>
+
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

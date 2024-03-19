@@ -14,6 +14,12 @@ p8c:
       delete_relationship: "delete-relationship"
       update_relationship: "update-relationship"
       update_delete_relationship: "delete-specific-relationship"
+    consumer:
+      enabled: ${KAFKA_CONSUMER_ENABLED:true}      
+  logs:
+    path:
+      local: /logs
+
 spring:
   data:
     mongodb:
