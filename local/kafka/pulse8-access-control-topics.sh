@@ -7,6 +7,9 @@ create_topic() {
         logs-attributes
         logs-relationships
         logs-roles
+        logs-permissions
+        logs-policies
+        logs-schemas
      )
         echo -e "zookeeper:2182 partition 1 replication-factor 1"
         for topicName in ${topicList[*]}; do

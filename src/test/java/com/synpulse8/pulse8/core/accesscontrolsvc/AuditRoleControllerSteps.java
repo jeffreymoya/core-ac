@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
+import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertTrue;
 
 public class AuditRoleControllerSteps extends StepDefinitionBase {
@@ -47,6 +48,11 @@ public class AuditRoleControllerSteps extends StepDefinitionBase {
     public void iSendAPostRequestToWithTheFollowingJsonBody(String path, String jsonBody) {
     }
 
+    @When("a user gets the schema")
+    public void aUserGetsTheSchema() {
+        given().header(principalHeader, "1234").when().get("/v1/schema");
+    }
+
     @Then("the attribute log should contain a message with the attribute topic")
     public void theAttributeLogShouldContainAMessageWithTheTopic() throws InterruptedException {
        boolean messageConsumed = consumer.getAttributeLatch().await(10, TimeUnit.SECONDS);
@@ -73,4 +79,25 @@ public class AuditRoleControllerSteps extends StepDefinitionBase {
             assertTrue("Log contains the expected topic", consumer.getRelationshipsAuditLog().contains(P8CKafkaTopic.LOGS_RELATIONSHIPS));
         }
     }
+    @Then("the permission log should contain a message with the permission topic")
+    public void thePermissionLogShouldContainAMessageWithTheTopic() throws InterruptedException {
+        boolean messageConsumed = consumer.getPermissionLatch().await(10, TimeUnit.SECONDS);
+        assertTrue(messageConsumed);
+        assertTrue("Log contains the expected topic", consumer.getPermissionsAuditLog().contains(P8CKafkaTopic.LOGS_PERMISSIONS));
+    }
+
+    @Then("the policy log should contain a message with the policy topic")
+    public void thePolicyLogShouldContainAMessageWithTheTopic() throws InterruptedException {
+        boolean messageConsumed = consumer.getPolicyLatch().await(10, TimeUnit.SECONDS);
+        assertTrue(messageConsumed);
+        assertTrue("Log contains the expected topic", consumer.getPoliciesAuditLog().contains(P8CKafkaTopic.LOGS_POLICIES));
+    }
+
+    @Then("the schema log should contain a message with the schema topic")
+    public void theSchemaLogShouldContainAMessageWithTheTopic() throws InterruptedException {
+        boolean messageConsumed = consumer.getSchemaLatch().await(10, TimeUnit.SECONDS);
+        assertTrue(messageConsumed);
+        assertTrue("Log contains the expected topic", consumer.getSchemasAuditLog().contains(P8CKafkaTopic.LOGS_SCHEMAS));
+    }
+
 }

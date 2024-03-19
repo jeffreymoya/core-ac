@@ -8,5 +8,7 @@ public abstract class P8CKafkaTopic {
     public static final String LOGS_ATTRIBUTES = "logs-attributes";
     public static final String LOGS_RELATIONSHIPS = "logs-relationships";
     public static final String LOGS_ROLES = "logs-roles";
-
+    public static final String LOGS_PERMISSIONS = "logs-permissions";
+    public static final String LOGS_POLICIES = "logs-policies";
+    public static final String LOGS_SCHEMAS = "logs-schemas";
 }
