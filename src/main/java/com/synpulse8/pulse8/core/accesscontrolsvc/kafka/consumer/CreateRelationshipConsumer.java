@@ -20,7 +20,7 @@ public class CreateRelationshipConsumer {
         this.permissionsService = permissionsService;
     }
 
-    @KafkaListener(topics = "${spring.kafka.consumer.default-topic}" , groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "${p8c.kafka.topics.create_relationship}" , groupId = "${spring.kafka.consumer.group-id}")
     public void createRelationship(ConsumerRecord<String, RelationshipCreation> record) {
         String updates = "{\"updates\":[" + record.value() + "]}";
 
