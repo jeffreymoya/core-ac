@@ -1,6 +1,6 @@
 # Development properties
 server:
-  port: 3010
+  port: ${ACCESS_CONTROL_SERVER_PORT}
 
 logging:
   level:

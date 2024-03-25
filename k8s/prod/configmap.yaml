@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: pulse8-core-access-control-config
-data:
-  FASTAPI_PROFILE: k8s

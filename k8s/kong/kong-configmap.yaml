@@ -1,0 +1,16 @@
+apiVersion: v1
+data:
+  KONG_CLUSTER_CONTROL_PLANE: aeb5f70ec9.au.cp0.konghq.com:443
+  KONG_CLUSTER_DP_LABELS: created-by:quickstart,type:docker-macOsIntelOS
+  KONG_CLUSTER_MTLS: pki
+  KONG_CLUSTER_SERVER_NAME: aeb5f70ec9.au.cp0.konghq.com
+  KONG_CLUSTER_TELEMETRY_ENDPOINT: aeb5f70ec9.au.tp0.konghq.com:443
+  KONG_CLUSTER_TELEMETRY_SERVER_NAME: aeb5f70ec9.au.tp0.konghq.com
+  KONG_DATABASE: "off"
+  KONG_KONNECT_MODE: "on"
+  KONG_LUA_SSL_TRUSTED_CERTIFICATE: system
+  KONG_ROLE: data_plane
+  KONG_VITALS: "off"
+kind: ConfigMap
+metadata:
+  name: kong-configmap

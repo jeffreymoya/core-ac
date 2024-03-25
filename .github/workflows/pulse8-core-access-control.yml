@@ -48,6 +48,36 @@ jobs:
         with:
           docker-build-context-location: .
           docker-file-path: Dockerfile
+          docker-platforms: linux/amd64,linux/arm64
           jfrog-user: ${{ secrets.JFROG_USER }}
           jfrog-password: ${{ secrets.JFROG_TOKEN }}
+      -
+        name: Build and push spicedb
+        id: build-spicedb
+        uses: docker/build-push-action@v5
+        with:
+          context: ./local/spicedb
+          push: true
+          file: ./local/spicedb/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-spicedb-${{ github.ref_name }}:${{ github.run_id }}
+            synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-spicedb-${{ github.ref_name }}:latest
+          labels: pulse8-core-access-control-spicedb
+          no-cache: true
+      -
+        name: Build and push Kong
+        id: build-kong
+        uses: docker/build-push-action@v5
+        with:
+          context: ./local
+          push: true
+          file: ./local/Dockerfile-kong
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-kong-${{ github.ref_name }}:${{ github.run_id }}
+            synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-kong-${{ github.ref_name }}:latest
+          labels: pulse8-core-access-control-kong
+          no-cache: true
+
 

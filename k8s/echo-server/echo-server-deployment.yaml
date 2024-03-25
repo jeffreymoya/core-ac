@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-server
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - image: inanimate/echo-server:latest
+          name: echoserver
+          ports:
+            - containerPort: 8080
+              hostPort: 3000
+              protocol: TCP
+      restartPolicy: Always

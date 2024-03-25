@@ -1,6 +1,6 @@
 # Development properties
 server:
-  port: 3010
+  port: ${ACCESS_CONTROL_SERVER_PORT}
 
 logging:
   level:
@@ -8,16 +8,16 @@ logging:
       synpulse8:
         pulse8:
           core:
-            accesscontrolsvc: debug
-      authzed:
-        api: debug
+            accesscontrolsvc: info
+      authzed: info
     root: error
     org:
       apache:
-        kafka: off
+        kafka: error
       springframework:
-        kafka: off
-        web: debug
+        boot: info
+        kafka: error
+        web: warn
 
 spring:
   security:

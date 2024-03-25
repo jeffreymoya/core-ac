@@ -2,16 +2,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pulse8-core-access-control-service
+  namespace: default
 spec:
-  type: ClusterIP
   ports:
-    - port: 3010
-      name: run
+    - name: service
       protocol: TCP
+      port: 3010
       targetPort: 3010
-    - port: 3010
-      name: debug
+    - name: debug
       protocol: TCP
-      targetPort: 3010
-  selector:
-    app: pulse8-core-access-control
+      port: 5010
+      targetPort: 5010
+  type: ClusterIP
