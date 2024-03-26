@@ -8,12 +8,17 @@ p8c:
     constants:
       objectType: "route"
       subjectType: "user"
+  kafka:
+    topics:
+      create_relationship: "create-relationship"
+      delete_relationship: "delete-relationship"
+      update_relationship: "update-relationship"
+      update_delete_relationship: "delete-specific-relationship"
+    consumer:
+      enabled: ${KAFKA_CONSUMER_ENABLED:true}      
   logs:
     path:
       local: /logs
-  kafka:
-    consumer:
-      enabled: ${KAFKA_CONSUMER_ENABLED:true}
 
 spring:
   data:
