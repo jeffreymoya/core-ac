@@ -181,6 +181,7 @@ public class ControllerAuditAspect {
             case "permissions" -> P8CKafkaTopic.LOGS_PERMISSIONS;
             case "schema" -> P8CKafkaTopic.LOGS_SCHEMAS;
             case "roles" -> P8CKafkaTopic.LOGS_ROLES;
+            case "relationships" -> P8CKafkaTopic.LOGS_RELATIONSHIPS;
             default -> "";
         };
     }
