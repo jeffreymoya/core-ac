@@ -25,6 +25,13 @@
             <MarkerFilter marker="logs-roles" onMatch="ACCEPT" onMismatch="DENY"/>
         </Kafka>
 
+        <Kafka name="KAFKA_LOGS_RELATIONSHIPS" topic="logs-relationships">
+            <PatternLayout pattern="${message_pattern}"/>
+            <Property name="bootstrap.servers">${bootstrap_servers}</Property>
+            <Property name="client.id">log4j-producer</Property>
+            <MarkerFilter marker="logs-relationships" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+
         <Kafka name="KAFKA_LOGS_PERMISSIONS" topic="logs-permissions">
             <PatternLayout pattern="${message_pattern}"/>
             <Property name="bootstrap.servers">${bootstrap_servers}</Property>
@@ -102,17 +109,30 @@
                 <DefaultRolloverStrategy max="10"/>
                 <MarkerFilter marker="logs-schemas" onMatch="ACCEPT" onMismatch="DENY"/>
             </RollingFile>
+
+            <RollingFile name="FILE_KAFKA_LOGS_RELATIONSHIPS" fileName="${log_path}/relationships/LOGS_RELATIONSHIPS.log"
+                         filePattern="${log_path}/relationships/archived/LOGS_RELATIONSHIPS-%d{yyyy-MM-dd}.log">
+                <PatternLayout pattern="${message_pattern}"/>
+                <Policies>
+                    <TimeBasedTriggeringPolicy/>
+                    <SizeBasedTriggeringPolicy size="10 MB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="10"/>
+                <MarkerFilter marker="logs-relationships" onMatch="ACCEPT" onMismatch="DENY"/>
+            </RollingFile>
         </SpringProfile>
 
         <Async name="Async">
             <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
             <AppenderRef ref="KAFKA_LOGS_ROLES"/>
+            <AppenderRef ref="KAFKA_LOGS_RELATIONSHIPS"/>
             <AppenderRef ref="KAFKA_LOGS_PERMISSIONS"/>
             <AppenderRef ref="KAFKA_LOGS_POLICIES"/>
             <AppenderRef ref="KAFKA_LOGS_SCHEMAS"/>
             <SpringProfile name="default">
                 <AppenderRef ref="FILE_KAFKA_LOGS_ATTRIBUTES"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_ROLES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_RELATIONSHIPS"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_PERMISSIONS"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_POLICIES"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_SCHEMAS"/>
@@ -125,12 +145,14 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="KAFKA_LOGS_ATTRIBUTES"/>
             <AppenderRef ref="KAFKA_LOGS_ROLES"/>
+            <AppenderRef ref="KAFKA_LOGS_RELATIONSHIPS"/>
             <AppenderRef ref="KAFKA_LOGS_PERMISSIONS"/>
             <AppenderRef ref="KAFKA_LOGS_POLICIES"/>
             <AppenderRef ref="KAFKA_LOGS_SCHEMAS"/>
             <SpringProfile name="default">
                 <AppenderRef ref="FILE_KAFKA_LOGS_ATTRIBUTES"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_ROLES"/>
+                <AppenderRef ref="FILE_KAFKA_LOGS_RELATIONSHIPS"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_PERMISSIONS"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_POLICIES"/>
                 <AppenderRef ref="FILE_KAFKA_LOGS_SCHEMAS"/>

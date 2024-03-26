@@ -14,7 +14,7 @@ docker compose -f local/docker-compose.yml up -d --build
 
 # Create topics for schemas.
 printStep "Create topics"
-bash ./local/kafka/pulse8-store-relationship-topics.sh
+bash ./local/kafka/pulse8-access-control-topics.sh
 
 # Deploy avro schemas.
 printStep "Deploy avro schemas"

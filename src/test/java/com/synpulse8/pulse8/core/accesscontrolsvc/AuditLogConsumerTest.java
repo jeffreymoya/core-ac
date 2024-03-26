@@ -15,6 +15,8 @@ public class AuditLogConsumerTest {
 
     private String rolesAuditLog;
 
+    private String relationshipsAuditLog;
+
     private String permissionsAuditLog;
 
     private String policiesAuditLog;
@@ -24,6 +26,8 @@ public class AuditLogConsumerTest {
     private final CountDownLatch attributeLatch = new CountDownLatch(1);
 
     private final CountDownLatch roleLatch = new CountDownLatch(1);
+
+    private final CountDownLatch relationshipLatch = new CountDownLatch(1);
 
     private final CountDownLatch permissionLatch = new CountDownLatch(1);
 
@@ -41,6 +45,12 @@ public class AuditLogConsumerTest {
     public void roleListener(String record) {
         rolesAuditLog = record;
         roleLatch.countDown();
+    }
+
+    @KafkaListener(topics = P8CKafkaTopic.LOGS_RELATIONSHIPS, groupId = "ac.audit.role", containerFactory = "kafkaListenerLog4jContainerFactory")
+    public void relationshipListener(String record) {
+        relationshipsAuditLog = record;
+        relationshipLatch.countDown();
     }
 
     @KafkaListener(topics = P8CKafkaTopic.LOGS_PERMISSIONS, groupId = "ac.audit.role", containerFactory = "kafkaListenerLog4jContainerFactory")

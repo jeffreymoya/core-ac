@@ -340,7 +340,7 @@ public class PermissionsSteps extends StepDefinitionBase {
         sleep(writeRelationshipToken);
     }
 
-    private RequestSpecification createRequestSpecificationBuilder(String principal, HttpMethodPermission httpMethodPermission) {
+    RequestSpecification createRequestSpecificationBuilder(String principal, HttpMethodPermission httpMethodPermission) {
         final RequestSpecification builder = given();
 
         if (httpMethodPermission.equals(HttpMethodPermission.POST)) {
@@ -354,7 +354,7 @@ public class PermissionsSteps extends StepDefinitionBase {
         return builder;
     }
 
-    private String createRequestQueryString(JsonNode testNode) {
+    String createRequestQueryString(JsonNode testNode) {
         Map<String, Object> queryParams = objectMapper.convertValue(testNode, new TypeReference<>() {});
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
         queryParams.forEach(builder::queryParam);
