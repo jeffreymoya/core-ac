@@ -41,7 +41,7 @@ spec:
         - name: synpulse-jfrog-docker-credential
       containers:
         - name: spicedb
-          image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-spicedb-62/merge:latest
+          image: ***BFG REMOVED***:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 50051

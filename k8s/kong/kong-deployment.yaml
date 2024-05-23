@@ -77,7 +77,7 @@ spec:
                 configMapKeyRef:
                   key: KONG_VITALS
                   name: kong-configmap
-          image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-kong-62/merge:latest
+          image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-kong-main:latest
           name: pulse8-kong
           ports:
             - containerPort: 8000

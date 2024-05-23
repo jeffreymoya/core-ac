@@ -24,7 +24,7 @@ spec:
               done;
               echo "SpiceDB is up and running!";
       containers:
-        - image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-62/merge:latest
+        - image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-main:latest
           name: pulse8-core-access-control
           envFrom:
             - configMapRef:
