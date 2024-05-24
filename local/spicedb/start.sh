@@ -28,10 +28,10 @@ do
     validate_env_var "$var"
 done
 
-if ping -c 1 -W 1 "$POSTGRES_HOST" > /dev/null; then
-    log "Host $1 is accessible"
+if nc -z "$POSTGRES_HOST" "$POSTGRES_PORT" > /dev/null; then
+    log "Host $POSTGRES_HOST is accessible on port $POSTGRES_PORT"
 else
-    error_exit "Host $1 is not accessible"
+    error_exit "Host $POSTGRES_HOST is not accessible on port $POSTGRES_PORT"
 fi
 
 postgres_uri="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable"

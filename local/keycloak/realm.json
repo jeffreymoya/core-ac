@@ -718,7 +718,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "***BFG REMOVED***",
+      "secret": "fjUI1TVUZHfTQ6HWO0c84GwGq6xgKXfW",
       "redirectUris": [
         "/*"
       ],

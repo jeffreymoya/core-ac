@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulse8-core-access-control-config
+data:
+  init-db.sh: |
+    (psql -c "CREATE DATABASE pulse8_core_access_control" || (true))
+  JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5010 -Xms256m -Xmx4G"
+  ACCESS_CONTROL_SERVER_PORT: "3010"
+  POSTGRES_USER: "postgres"
+  PGUSER: "postgres"
+  POSTGRES_DB: "pulse8_core_access_control"
+  SPRING_PROFILES_ACTIVE: "local"
+  SPICEDB_HOST: "spicedb"
+  SPICEDB_PORT: "50051"
+  MONGODB_URI: "mongodb://mongodb:27017/p8c-core-access-control"
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  SCHEMA_REGISTRY_URL: "http://schemaregistry:8081"
+  SPRING_KAFKA_PRODUCER_ACKS: "all"
+  KAFKA_CONSUMER_ENABLED: "true"
+  KONG_CLUSTER_CERT_KEY: "/certs/cluster.key"
+  KONG_CLUSTER_CERT: "/certs/cluster.crt"
+  KONG_DECLARATIVE_CONFIG: "/opt/kong/kong.yaml"
+  KONG_LUA_PACKAGE_PATH: "/opt/kong/plugins/checkpermission/?.lua;;"
+  KONG_PLUGINS: "bundled,checkpermission"
+  KONG_LOG_LEVEL: "debug"

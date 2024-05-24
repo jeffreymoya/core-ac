@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulse8-core-access-control
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    spec:
+      imagePullSecrets:
+        - name: synpulse-jfrog-docker-credential
+      initContainers:
+        - name: wait-for-spicedb
+          image: busybox
+          command: [ 'sh', '-c' ]
+          args:
+            - |
+              until nc -z -v -w30 spicedb 50051;
+              do
+                echo "Waiting for SpiceDB...";
+                sleep 5;
+              done;
+              echo "SpiceDB is up and running!";
+      containers:
+        - image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-main:latest
+          name: pulse8-core-access-control
+          envFrom:
+            - configMapRef:
+                name: pulse8-core-access-control-config
+            - secretRef:
+                name: pulse8-core-access-control-secrets
+          ports:
+            - containerPort: 3010
+              hostPort: 3010
+              protocol: TCP
+            - containerPort: 5010
+          imagePullPolicy: Always
+          readinessProbe:
+            tcpSocket:
+              port: 3010
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            successThreshold: 1
+          livenessProbe:
+            tcpSocket:
+              port: 3010
+            initialDelaySeconds: 60
+            periodSeconds: 15

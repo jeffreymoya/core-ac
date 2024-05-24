@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong
+spec:
+  replicas: 1
+  template:
+    spec:
+      imagePullSecrets:
+        - name: synpulse-jfrog-docker-credential
+      containers:
+        - env:
+            - name: KONG_CLUSTER_CERT
+              value: /certs/cluster.crt
+            - name: KONG_CLUSTER_CERT_KEY
+              value: /certs/cluster.key
+            - name: KONG_CLUSTER_CONTROL_PLANE
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_CLUSTER_CONTROL_PLANE
+                  name: kong-configmap
+            - name: KONG_CLUSTER_DP_LABELS
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_CLUSTER_DP_LABELS
+                  name: kong-configmap
+            - name: KONG_CLUSTER_MTLS
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_CLUSTER_MTLS
+                  name: kong-configmap
+            - name: KONG_CLUSTER_SERVER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_CLUSTER_SERVER_NAME
+                  name: kong-configmap
+            - name: KONG_CLUSTER_TELEMETRY_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_CLUSTER_TELEMETRY_ENDPOINT
+                  name: kong-configmap
+            - name: KONG_CLUSTER_TELEMETRY_SERVER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_CLUSTER_TELEMETRY_SERVER_NAME
+                  name: kong-configmap
+            - name: KONG_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_DATABASE
+                  name: kong-configmap
+            - name: KONG_DECLARATIVE_CONFIG
+              value: /opt/kong/kong.yaml
+            - name: KONG_KONNECT_MODE
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_KONNECT_MODE
+                  name: kong-configmap
+            - name: KONG_LOG_LEVEL
+              value: debug
+            - name: KONG_LUA_PACKAGE_PATH
+              value: /opt/kong/plugins/checkpermission/?.lua;;
+            - name: KONG_LUA_SSL_TRUSTED_CERTIFICATE
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_LUA_SSL_TRUSTED_CERTIFICATE
+                  name: kong-configmap
+            - name: KONG_PLUGINS
+              value: bundled,checkpermission
+            - name: KONG_ROLE
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_ROLE
+                  name: kong-configmap
+            - name: KONG_VITALS
+              valueFrom:
+                configMapKeyRef:
+                  key: KONG_VITALS
+                  name: kong-configmap
+          image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-kong-main:latest
+          name: pulse8-kong
+          ports:
+            - containerPort: 8000
+              hostPort: 8000
+              protocol: TCP
+      restartPolicy: Always

@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spicedb
+spec:
+  replicas: 1
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: [ 'sh', '-c' ]
+          args:
+            - |
+              until nc -z -v -w30 pulse8-infra-psql-postgresql 5432;
+              do
+                echo "Waiting for pulse8-infra-psql-postgresql...";
+                sleep 5;
+              done;
+              echo "pulse8-infra-psql-postgresql is up and running!";
+        - name: init-db
+          image: postgres:16
+          command:
+            - /bin/bash
+            - /docker-entrypoint-initdb.d/init-db.sh
+          env:
+            - name: PGHOST
+              value: pulse8-infra-psql-postgresql
+            - name: PGUSER
+              value: pulse8
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pulse8-infra-psql-postgresql
+                  key: password
+          volumeMounts:
+            - name: init-db-volume
+              mountPath: /docker-entrypoint-initdb.d/
+              readOnly: true
+      imagePullSecrets:
+        - name: synpulse-jfrog-docker-credential
+      containers:
+        - name: spicedb
+          image: synpulse.jfrog.io/s8-docker/synpulse-group-pulse8-core-access-control-spicedb-main:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 50051
+              hostPort: 50051
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: pulse8-infra-psql-postgresql
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: pulse8_core_access_control
+            - name: POSTGRES_USER
+              value: pulse8
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pulse8-infra-psql-postgresql
+                  key: password
+            - name: SPICEDB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: pulse8-core-access-control-config
+                  key: SPICEDB_HOST
+            - name: SPICEDB_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pulse8-core-access-control-secrets
+                  key: SPICEDB_PRESHARED_KEY
+          readinessProbe:
+            tcpSocket:
+              port: 50051
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            successThreshold: 1
+          livenessProbe:
+            tcpSocket:
+              port: 50051
+            initialDelaySeconds: 60
+            periodSeconds: 15
+      restartPolicy: Always
+      volumes:
+        - name: init-db-volume
+          configMap:
+            name: pulse8-core-access-control-config
+            items:
+              - key: "init-db.sh"
+                path: "init-db.sh"

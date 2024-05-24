@@ -3,14 +3,14 @@ consumers:
 - custom_id: pulse8
   jwt_secrets:
   - algorithm: HS256
-    key: ***BFG REMOVED***
-    secret: ***BFG REMOVED***
+    key: 2o5CHQR81WBHuIn4OmjcWqBOGC2wQumD
+    secret: fN9W2FIwKi6IrHuqa4RA3bNdKU1wTCw8
   username: pulse8core
 - custom_id: pulse8admin
   jwt_secrets:
     - algorithm: HS256
-      key: ***BFG REMOVED***
-      secret: ***BFG REMOVED***
+      key: 2o5CHQR81WBHuIn4OmjcWqBOGC2wQumE
+      secret: fN9W2FIwKi6IrHuqa4RA3bNdKU1wTCw9
   username: pulse8admin
 plugins:
 - config:

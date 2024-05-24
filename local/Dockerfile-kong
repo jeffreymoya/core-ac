@@ -1,0 +1,7 @@
+FROM kong/kong-gateway:3.6
+
+COPY ./certs /certs
+
+COPY ./config /opt/kong
+
+EXPOSE 8000
